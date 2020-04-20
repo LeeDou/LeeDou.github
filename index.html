@@ -17,6 +17,38 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
 
 </head>
+<script>
+  (function(para) {
+    if(typeof(window['sensorsDataAnalytic201505']) !== 'undefined') {
+      return false;
+    }
+    window['sensorsDataAnalytic201505'] = para.name;
+    window[para.name] = {
+      para: para
+    };
+})({
+    name: 'sensors',
+    linker: {
+      domain: ['leedou.top', 'li.com'],
+      hash: false,
+    },
+    server_url:'http://test-syg.datasink.sensorsdata.cn/sa?project=likang&token=27f1e21b78daf376',
+    //如果神策代码中 `sensorsdata.min.js` 是 1.13.1 以前的版本，必须须配置 heatmap_url，高于此版本不需要配置。heatmap_url 神策分析中点击分析及触达分析功能代码，代码生成工具会自动生成。
+    heatmap_url: '在 GitHub 下载新版本的 heatmap.min.js',
+    //如果神策后台版本及 `sensorsdata.min.js` 均是 1.10 及以上版本，不需要配置 web_url 参数。web_url 神策分析中点击分析及触达分析功能会用到此地址，代码生成工具会自动生成。
+    web_url:"http://test-syg.datasink.sensorsdata.cn/sa?project=likang&token=27f1e21b78daf376",
+    heatmap: {
+       //是否开启点击图，默认 default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭
+       //需要 Web JS SDK 版本号大于 1.7
+       clickmap:'default',
+       //是否开启触达注意力图，默认 not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启
+       //需要 Web JS SDK 版本号大于 1.9.1
+       scroll_notice_map:'not_collect'
+    }
+  });
+</script>
+<script src="sensors.js"></script>
+<script>
 
 <body>
 
