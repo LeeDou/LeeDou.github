@@ -69,22 +69,6 @@ if(typeof JSON!=='object'){JSON={}}(function(){'use strict';var rx_one=/^[\],:{}
     }
   };
 
-  _.include = function (obj, target) {
-    var found = false;
-    if (obj == null) {
-      return found;
-    }
-    if (nativeIndexOf && obj.indexOf === nativeIndexOf) {
-      return obj.indexOf(target) != -1;
-    }
-    each(obj, function (value) {
-      if (found || (found = (value === target))) {
-        return breaker;
-      }
-    });
-    return found;
-  };
-
   // 普通的extend，不能到二级
   _.extend = function(obj) {
     each(slice.call(arguments, 1), function(source) {
@@ -2305,7 +2289,7 @@ sd.initPara = function(para){
   if (sd.para.queue_timeout > sd.para.datasend_timeout) {
     sd.para.datasend_timeout = sd.para.queue_timeout;
   }
-  console.log('para: ', sd.para);
+
 };
 
 
@@ -4504,113 +4488,6 @@ var saNewUser = {
 
 
 
-function initdomains() {
-  console.log('init domains: ', sd.para)
-  var href = window.location.href;
-  var topDomain = _.getCookieTopLevelDomain();
-  var reffer = _.getReferrer();
-  var domain = _.getHostname(href);
-  if(_.isArray(sd.para.linker.domain) && sd.para.linker.domain.length > 0) {
-    // 判断当前域名和前向地址域名是否相同，若不相同则判断当前是否存在匿名 ID
-    if(!isSameDomain(reffer)){
-      // 设置 URLID 为当前网站的匿名ID
-      // setID
-      // 这里需要考虑到在 sa init 执行时就执行 setId
-      // !!store.getDistinctId() && 
-      setId();
-    }
-  }
-  console.log('linker: ', sd.para.linker.domain);
-  if(_.isArray(sd.para.linker.domain) && sd.para.linker.domain.length > 0) {
-    console.log('add listen')
-    addListen();
-  }
-}
-
-function isSameDomain(url) {
-  var topDomain = _.getCookieTopLevelDomain().substring(1);
-  console.log('top domain: ', topDomain);
-  var href = window.location.href;
-  var host = _.getHostname(href);
-  if(sd.para.cross_subdomain) {
-    return url.indexOf(topDomain) > -1 ? true : false;
-  } else {
-    return url.indexOf(host) > -1 ? true : false;
-  }
-}
-
-// 获取当前 URL 中传的 ID
-function getUrlId() {
-  var location = document.location,
-      search = location.search,
-      hash = location.hash;
-  var searchId = getUrlValue(search) || '',
-      hashId = getUrlValue(hash) || '';
-  return searchId ? search : hashId;
-}
-
-function getUrlValue(target, key) {
-  var param = target.split('&');
-  for(var i=0,len = param.length; i < len; i++) {
-    var tep = param[i].split('=');
-    if(tep[0] === key) {
-      return tep[1];
-    }
-  }
-}
-
-// 根据当前网站是否存在登录 ID 决定是否修改匿名ID
-function setId() {
-  // 先判断是否存在 first_id, 存在则表示当前域名使用的是登录 ID，则不对当前 ID 进行修改
-  if(store.getDistinctId()) {
-    // store.set()
-    // store.set('distinct_id', getUrlid());
-    // 或者 identify
-    sd.identify(getUrlId(), true);
-  }
-}
-
-function addListen() {
-  document.addEventListener('mousedown', function(event){
-    console.log('listen event: ', event);
-    var target = event.target || event.srcElement || {};
-    var nodeName = target.tagName;
-    if(nodeName.toLowerCase() === "a" && target.href) {
-      var protocol = target.href.protocol;
-      var host = _.getHostname(target.href);
-      if(protocol === 'http' || protocol === 'https' || _.include(sd.para.linker.domain, host)) {
-          if(!isSameDomain(host)) {
-            console.log('current host: ', host)
-            rewireteUrl(target, target.href);
-          }
-      }
-    }
-  })
-}
-
-function rewireteUrl(target, url) {
-  var reg = /([^?#]+)(\?[^#]*)?(#.*)?/;
-  var arr = reg.exec(url);
-  console.log('url2: ', url);
-  if(!arr) {
-    return;
-  }
-  var host = arr[1] || '',
-      search = arr[2] || '',
-      hash = arr[3] || '';
-  if(sd.para.linker.hash) {
-    var index = hash.indexOf('?');
-    if(index > -1) {
-      url = host + search + '#' + hash.substring(1) + '&_sa=' + store.getDistinctId();
-    } else {
-      url = host + search + '#' + hash.substring(1) + '?_sa=' + store.getDistinctId();
-    }
-  } else {
-    url = host + '?' + search.substring(1) + '&_sa=' + store.getDistinctId();
-  }
-  console.log('url1: ', url);
-  target.href = url;
-}
 
 sd.init = function(para){
   // 标志已经init过
@@ -4710,8 +4587,6 @@ sd.init = function(para){
     }
     // 初始化distinct_id
     sd.store.init();
-
-    initdomains();
 
     sd.readyState.setState(3);
 //    sd.noticePluginIsReady();
