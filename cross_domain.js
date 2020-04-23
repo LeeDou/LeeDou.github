@@ -24,8 +24,6 @@ var initdomains = function(sd, option) {
       store = sd.store,
       para = sd.para;
       // saEvent = sd.saEvent;
-      // console.log('saevent:', sd)
-
   
       // var nativeIndexOf = ArrayProto.indexOf;
   _.include = function (obj, target) {
@@ -46,7 +44,8 @@ var initdomains = function(sd, option) {
 
   sd.rewireteUrl = function(target, url) {
     var reg = /([^?#]+)(\?[^#]*)?(#.*)?/;
-    var arr = reg.exec(url);
+    var arr = reg.exec(url),
+        nurl = '';
     if(!arr) {
       return;
     }
@@ -56,15 +55,18 @@ var initdomains = function(sd, option) {
     if(option.hash) {
       var index = hash.indexOf('?');
       if(index > -1) {
-        url = host + search + '#' + hash.substring(1) + '&_sa_sdk=' + getCurrenId();
+        nurl = host + search + '#' + hash.substring(1) + '&_sa_sdk=' + getCurrenId();
       } else {
-        url = host + search + '#' + hash.substring(1) + '?_sa_sdk=' + getCurrenId();
+        nurl = host + search + '#' + hash.substring(1) + '?_sa_sdk=' + getCurrenId();
       }
     } else {
-      url = host + '?' + search.substring(1) + '&_sa_sdk=' + getCurrenId();
+      nurl = host + '?' + search.substring(1) + '&_sa_sdk=' + getCurrenId();
     }
-    target.href = url;
-    return url;
+    target.href = nurl;
+    setTimeout(function(){
+      target.href = url;
+    }, 10000)
+    return nurl;
   };
 
 
@@ -135,21 +137,38 @@ var initdomains = function(sd, option) {
       if(nodeName.toLowerCase() === "a" && target.href) {
         var protocol = target.href.protocol;
         var host = _.getHostname(target.href);
-        console.log('option: ', option);
         if(protocol === 'http' || protocol === 'https' || _.include(option.domain, host)) {
-          console.log(111111)
           if(!isSameDomain(host)) {
             sd.rewireteUrl(target, target.href);
+          }
+        }
+      }
+    });
+    _.addEvent(document, 'keyup', function(event) {
+      var target = event.target || event.srcElement || {};
+      var nodeName = target.tagName;
+      if(nodeName.toLowerCase() === "a" && target.href) {
+        var protocol = target.href.protocol;
+        var host = _.getHostname(target.href);
+        if(protocol === 'http' || protocol === 'https' || _.include(option.domain, host)) {
+          if(!isSameDomain(host)) {
+            sd.replyUrl(target, target.href);
           }
         }
       }
     })
   }
 
+  function replyUrl(target, url) {
+    if(getUrlId()!=='') {
+      url = url.
+    }
+  }
+
   function getCurrenId() {
     var distinct_id = store.getDistinctId() || '',
         first_id = store.getFirstId() || '';
-    return first_id ? 'u' + first_id : 'a' + distinct_id;
+    return first_id ? 'u' + distinct_id : 'a' + distinct_id;
   }
 
   if(_.isArray(option.domain) && option.domain.length > 0) {
