@@ -68,9 +68,16 @@
         </div>
         <article class="markdown-body">
           <h3>
-<a id="welcome-to-leedous-github-pages" class="anchor" href="#welcome-to-leedous-github-pages" aria-hidden="true"><span class="octicon octicon-link"></span></a>Welcome to LeeDou's GitHub Pages.</h3>
+            <a id="welcome-to-leedous-github-pages" class="anchor" href="#welcome-to-leedous-github-pages" aria-hidden="true">
+              <span class="octicon octicon-link"></span>
+            </a>
+            Welcome to LeeDou's GitHub Pages.
+          </h3>
 
-<p>欢迎你 我的朋友！</p>
+          <p>欢迎你 我的朋友！</p>
+
+          <button class="btn">test 按钮</button>
+
         </article>
       </div>
     </div>
@@ -91,6 +98,11 @@
     <p class="name"></p>
   </div>
 
-  
+  <script>
+    var btn = document.getElementsByClassName('btn')[0];
+    btn.addEventListener('click', function(event){
+      sensors.track('btn', event);
+    })
+  </script>
 </body>
 </html>
