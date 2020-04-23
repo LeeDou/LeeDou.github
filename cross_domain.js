@@ -144,26 +144,26 @@ var initdomains = function(sd, option) {
         }
       }
     });
-    _.addEvent(document, 'keyup', function(event) {
-      var target = event.target || event.srcElement || {};
-      var nodeName = target.tagName;
-      if(nodeName.toLowerCase() === "a" && target.href) {
-        var protocol = target.href.protocol;
-        var host = _.getHostname(target.href);
-        if(protocol === 'http' || protocol === 'https' || _.include(option.domain, host)) {
-          if(!isSameDomain(host)) {
-            sd.replyUrl(target, target.href);
-          }
-        }
-      }
-    })
+    // _.addEvent(document, 'keyup', function(event) {
+    //   var target = event.target || event.srcElement || {};
+    //   var nodeName = target.tagName;
+    //   if(nodeName.toLowerCase() === "a" && target.href) {
+    //     var protocol = target.href.protocol;
+    //     var host = _.getHostname(target.href);
+    //     if(protocol === 'http' || protocol === 'https' || _.include(option.domain, host)) {
+    //       if(!isSameDomain(host)) {
+    //         sd.replyUrl(target, target.href);
+    //       }
+    //     }
+    //   }
+    // })
   }
 
-  function replyUrl(target, url) {
-    if(getUrlId()!=='') {
-      url = url.
-    }
-  }
+  // function replyUrl(target, url) {
+  //   if(getUrlId()!=='') {
+  //     url = url.
+  //   }
+  // }
 
   function getCurrenId() {
     var distinct_id = store.getDistinctId() || '',
