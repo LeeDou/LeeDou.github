@@ -1,0 +1,108 @@
+<!doctype html>
+<!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
+<!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
+  <link rel="stylesheet" href="stylesheets/github-dark.css">
+  <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script type="text/javascript" src="javascripts/script.js"></script> -->
+
+  <title>Leedou.GitHub</title>
+  <meta name="description" content="博客">
+
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+</head>
+
+  <script>
+    (function(para) {
+      if(typeof(window['sensorsDataAnalytic201505']) !== 'undefined') {
+        return false;
+      }
+      window['sensorsDataAnalytic201505'] = para.name;
+      window[para.name] = {
+        para: para
+      };
+  })({
+      name: 'sensors',
+      server_url:'https://test-syg.datasink.sensorsdata.cn/sa?project=likang&token=27f1e21b78daf376',
+      //如果神策代码中 `sensorsdata.min.js` 是 1.13.1 以前的版本，必须须配置 heatmap_url，高于此版本不需要配置。heatmap_url 神策分析中点击分析及触达分析功能代码，代码生成工具会自动生成。
+      heatmap_url: "在 GitHub 下载新版本的 heatmap.min.js ",
+      //如果神策后台版本及 `sensorsdata.min.js` 均是 1.10 及以上版本，不需要配置 web_url 参数。web_url 神策分析中点击分析及触达分析功能会用到此地址，代码生成工具会自动生成。
+      web_url:"神策分析后台地址",
+      heatmap: {
+         //是否开启点击图，默认 default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭
+         //需要 Web JS SDK 版本号大于 1.7
+         clickmap:'default',
+         //是否开启触达注意力图，默认 not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启
+         //需要 Web JS SDK 版本号大于 1.9.1
+         scroll_notice_map:'not_collect'
+      }
+    });
+  </script>
+<script src="sensors.js"></script>
+<script>
+  sensors.quick('autoTrack');
+</script>
+<script src="cross_domain.js"></script>
+<body>
+
+  <div class="wrapper">
+    <header>
+      <h1 class="title">Leedou个人博客</h1>
+    </header>
+    <div id="container">
+      <p class="tagline">博客</p>
+      <div id="main" role="main">
+        <div class="download-bar">
+        <div class="inner">
+          <a href="https://github.com/LeeDou/LeeDou.github/tarball/master" class="download-button tar"><span>Download</span></a>
+          <a href="https://github.com/LeeDou/LeeDou.github/zipball/master" class="download-button zip"><span>Download</span></a>
+          <a href="https://github.com/LeeDou/LeeDou.github" class="code">View Leedou.GitHub on GitHub</a>
+        </div>
+        <span class="blc"></span><span class="trc"></span>
+        </div>
+        <article class="markdown-body">
+          <h3>
+            <a id="welcome-to-leedous-github-pages" class="anchor" href="#welcome-to-leedous-github-pages" aria-hidden="true">
+              <span class="octicon octicon-link"></span>
+            </a>
+            Welcome to LeeDou's GitHub Pages.
+          </h3>
+
+          <p>欢迎你 我的朋友！</p>
+
+          <button class="btn">test 按钮</button>
+
+        </article>
+      </div>
+    </div>
+    <footer>
+      <div class="owner">
+      <p><a href="https://github.com/LeeDou" class="avatar"><img src="https://avatars1.githubusercontent.com/u/16084548?v=3&amp;s=60" width="48" height="48"></a> <a href="https://github.com/LeeDou">LeeDou</a> maintains <a href="https://github.com/LeeDou/LeeDou.github">Leedou.GitHub</a></p>
+
+
+      </div>
+      <div class="creds">
+        <small>This page generated using <a href="https://pages.github.com/">GitHub Pages</a><br>theme by <a href="https://twitter.com/jonrohan/">Jon Rohan</a></small>
+      </div>
+    </footer>
+  </div>
+  <div class="current-section">
+    <a href="#top">Scroll to top</a>
+    <a href="https://github.com/LeeDou/LeeDou.github/tarball/master" class="tar">tar</a><a href="https://github.com/LeeDou/LeeDou.github/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
+    <p class="name"></p>
+  </div>
+
+  <script>
+    var btn = document.getElementsByClassName('btn')[0];
+    btn.addEventListener('click', function(event){
+      sensors.track('btn', event);
+    })
+  </script>
+</body>
+</html>

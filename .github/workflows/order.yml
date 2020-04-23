@@ -1,0 +1,137 @@
+name: deploy
+
+on:
+  push: # 当发生推送事件时
+    tags: # 当推送 tag 时
+      - v*
+    branches: # 当推送分支时
+      - master
+    #paths: [ src/* ]
+  pull_request: # 当发生合并事件时
+    branches:
+      - master
+# 流水线变量查看：https://help.github.com/en/actions/configuring-and-managing-workflows/using-environment-variables
+
+env:
+  WORKFLOW_ID: ${{github.run_id}}
+  WORKFLOW_NUMBER: ${{github.run_number}}
+  WORKFLOW_WORKSPACE: ${{github.workspace}}
+  WORKFLOW_COMMITID: ${{github.sha}}
+
+  BUILD_SCRIPT: "npm run newprod"
+  ARGS: "-rltgoDzvO --delete"
+  TARGET: "/home/rsynctest/vwork${{github.run_number}}"    # 这个一定是rsync 用户的有权权限的目录
+  WWWROOT_DIR: "/home/rsynctest"
+
+  REMOTE_HOST: ${{ secrets._HOST }}
+  REMOTE_PORT: ${{ secrets._PORT }}
+  REMOTE_USER: ${{ secrets._USERNAME }}
+  SSH_PRIVATE_KEY: ${{ secrets._SECRET }}
+
+
+
+jobs:
+  build: # 构建安装依赖，构建文件
+    name: "Build"  
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2 # 拉去分支
+
+    - name: Cache node modules #缓存依赖
+      uses: actions/cache@v1
+      env:
+        cache-name: cache-node-modules
+      with:
+        path: ~/.npm # npm cache files are stored in `~/.npm` on Linux/macOS
+        key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-build-${{ env.cache-name }}-
+          ${{ runner.os }}-build-
+          ${{ runner.os }}-
+
+#    - name: Install Dependencies
+#      run: npm i
+#
+#    - name: Npm run build
+#      run: $BUILD_SCRIPT
+            
+    - run: mkdir dist && echo 3333> dist/index.html
+
+    - run: mkdir zip
+    - run: cd dist && zip -rq dist.zip ./* && mv dist.zip ../zip
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist
+        path: zip
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Download result
+      uses: actions/download-artifact@v1
+      with:
+        name: dist
+    - run: ls -la
+
+    #  use ssh-deploy
+#    - uses: easingthemes/ssh-deploy@v2.0.7
+#      env:
+#          SSH_PRIVATE_KEY: ${{ secrets._SECRET }}
+#          ARGS: "-rltgoDzvO --delete"
+#          #SOURCE: dist/
+#          SOURCE: ./dist.zip
+#          REMOTE_HOST: ${{ secrets._HOST }}
+#          REMOTE_USER: ${{ secrets._USERNAME }}
+#          TARGET: ${{env.TARGET}}
+
+    #  use rsync-deployments
+    - name: rsync deployments
+      uses: contention/rsync-deployments@v1.0.0
+      env:
+        DEPLOY_KEY: ${{env.SSH_PRIVATE_KEY}}
+        UPLOAD_DIR: ${{env.TARGET}}
+      with:
+        args: "-avzr --delete ${{env.REMOTE_USER}}@${{env.REMOTE_HOST}}:${{env.UPLOAD_DIR}}"
+
+
+    #  use ssh-commands
+    - name: Switch SoftLink
+      uses: appleboy/ssh-action@master
+      env:
+        softlinkname: "test.vwork"
+      with:
+        host: ${{ env.REMOTE_HOST }}
+        username: ${{ env.REMOTE_USER }}
+        key: ${{ env.SSH_PRIVATE_KEY }}
+        port: ${{ env.REMOTE_PORT }}
+        script_stop: true
+        script: |
+          cd ${{env.TARGET}}
+          unzip -o dist/dist.zip -d .
+          rm -rf dist
+          ls -la 
+          cd ${{env.WWWROOT_DIR}}
+
+          if [ ! -L "${{env.softlinkname}}" ]; then
+            if [ -d "${{env.softlinkname}}" ]; then
+              rm -rf ${{env.softlinkname}}
+            fi
+
+            ln -snf "vwork${{github.run_number}}" "${{env.softlinkname}}"
+          fi	
+
+          pre_link=`readlink -f ${{env.softlinkname}}`
+          echo "$pre_link" > "${{env.WWWROOT_DIR}}/pre_link_${{env.softlinkname}}"
+
+          # 清理文件
+
+          # 切换软连
+          ln -snf "vwork${{github.run_number}}" "${{env.softlinkname}}"
+
+          ls -la
+
+          exit 0
