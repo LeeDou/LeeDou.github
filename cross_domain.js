@@ -23,6 +23,8 @@ var initdomains = function(sd, option) {
       _ = sd._,
       store = sd.store,
       para = sd.para;
+      // saEvent = sd.saEvent;
+      // console.log('saevent:', sd)
 
   
       // var nativeIndexOf = ArrayProto.indexOf;
@@ -106,10 +108,11 @@ var initdomains = function(sd, option) {
     if(!isSameDomain(reffer)){
       var isAnonymousId = getUrlId().substring(0,1) === 'a',
           urlId = getUrlId().substring(1);
+          console.log('distinctid: ', store.getDistinctId());
       if(urlId && isAnonymousId && store.getFirstId()) {
-        saEvent.send({
-          original_id: original_id,
-          distinct_id: id,
+        _.saEvent.send({
+          original_id: urlId,
+          distinct_id: store.getDistinctId(),
           type: 'track_signup',
           event: '$SignUp',
           properties: {}

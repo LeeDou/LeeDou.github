@@ -2097,7 +2097,220 @@ _.autoExeQueue = function(){
      }
 
   }
-  
+  var saEvent = _.saEvent = {};
+
+  // var saEvent = {};
+
+saEvent.checkOption = {
+  // event和property里的key要是一个合法的变量名，由大小写字母、数字、下划线和$组成，并且首字符不能是数字。
+  regChecks: {
+    regName: /^((?!^distinct_id$|^original_id$|^time$|^properties$|^id$|^first_id$|^second_id$|^users$|^events$|^event$|^user_id$|^date$|^datetime$)[a-zA-Z_$][a-zA-Z\d_$]{0,99})$/i
+  },
+  checkPropertiesKey: function(obj) {
+    var me = this, flag = true;
+    _.each(obj, function(content, key) {
+      if (!me.regChecks.regName.test(key)) {
+        flag = false;
+      }
+    });
+    return flag;
+  },
+  check: function(a, b) {
+    if (typeof this[a] === 'string') {
+      return this[this[a]](b);
+    } else {
+      return this[a](b);
+    }
+  },
+  str: function(s) {
+    if (!_.isString(s)) {
+      sd.log('请检查参数格式,必须是字符串');
+      //return false;
+      return true;
+    } else {
+      return true;
+    }
+  },
+  properties: function(p) {
+    _.strip_sa_properties(p);
+    if (p) {
+      if (_.isObject(p)) {
+        if (this.checkPropertiesKey(p)) {
+          return true;
+        } else {
+          sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
+          //return false;
+          return true;
+        }
+      } else {
+        sd.log('properties可以没有，但有的话必须是对象');
+        return true;
+        //return false;
+      }
+    } else {
+      return true;
+    }
+  },
+  propertiesMust: function(p) {
+    _.strip_sa_properties(p);
+    if (p === undefined || !_.isObject(p) || _.isEmptyObject(p)) {
+      sd.log('properties必须是对象且有值');
+      return true;
+      //return false;
+    } else {
+      if (this.checkPropertiesKey(p)) {
+        return true;
+      } else {
+        sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
+        return true;
+        //return false;
+      }
+    }
+  },
+  // event要检查name
+  event: function(s) {
+    if (!_.isString(s) || !this['regChecks']['regName'].test(s)) {
+      sd.log('请检查参数格式，eventName 必须是字符串，且需是合法的变量名，即不能以数字开头，且只包含：大小写字母、数字、下划线和 $,其中以 $ 开头的表明是系统的保留字段，自定义事件名请不要以 $ 开头');
+      //return false;
+      return true;
+    } else {
+      return true;
+    }
+
+  },
+  test_id: 'str',
+  group_id: 'str',
+  distinct_id: function(id) {
+    if (_.isString(id) && /^.{1,255}$/.test(id)) {
+      return true;
+    } else {
+      sd.log('distinct_id必须是不能为空，且小于255位的字符串');
+      return false;
+    }
+  }
+};
+
+saEvent.check = function(p) {
+  var flag = true;
+  for (var i in p) {
+    if (!this.checkOption.check(i, p[i])) {
+      return false;
+    }
+  }
+  return flag;
+};
+
+saEvent.send = function(p, callback) {
+  var data = {
+    distinct_id: store.getDistinctId(),
+    lib: {
+      $lib: 'js',
+      $lib_method: 'code',
+      $lib_version: String(sd.lib_version)
+    },
+    properties: {}
+  };
+
+  if (_.isObject(p) && _.isObject(p.properties) && !_.isEmptyObject(p.properties) && p.properties.$lib_detail) {
+    data.lib.$lib_detail = p.properties.$lib_detail;
+    delete p.properties.$lib_detail;
+  }
+  //debugger;
+  _.extend(data, sd.store.getUnionId(), p);
+
+  // 合并properties里的属性
+  if (_.isObject(p.properties) && !_.isEmptyObject(p.properties)) {
+    _.extend(data.properties, p.properties);
+  }
+  /*
+  // 合并lib里的属性
+  if (_.isObject(callback)) {
+    _.extend(data.lib, callback);
+  }
+  */
+
+  // profile时不传公用属性
+  if (!p.type || p.type.slice(0, 7) !== 'profile') {
+    // 传入的属性 > 当前页面的属性 > session的属性 > cookie的属性 > 预定义属性
+
+    data.properties = _.extend({}, _.info.properties(), store.getProps(), store.getSessionProps(), _.info.currentProps, data.properties);
+    if(sd.para.preset_properties.latest_referrer && !_.isString(data.properties.$latest_referrer)){
+      data.properties.$latest_referrer = '取值异常';
+      // TODO
+      // Do NOT send data here, it will cause too much recursion.
+      //_.jssdkDebug(data.properties,store.getProps());
+      //sd.debug.jssdkDebug(data.properties, store.getProps());
+    }
+    if(sd.para.preset_properties.latest_search_keyword && !_.isString(data.properties.$latest_search_keyword)){
+      data.properties.$latest_search_keyword = '取值异常';
+    }
+    if(sd.para.preset_properties.latest_traffic_source_type && !_.isString(data.properties.$latest_traffic_source_type)){
+      data.properties.$latest_traffic_source_type = '取值异常';
+    }
+    if(sd.para.preset_properties.latest_landing_page && !_.isString(data.properties.$latest_landing_page)){
+      data.properties.$latest_landing_page = '取值异常';
+    }
+  }
+
+  // 如果$time是传入的就用，否则使用服务端时间
+  if (data.properties.$time && _.isDate(data.properties.$time)) {
+    data.time = data.properties.$time * 1;
+    delete data.properties.$time;
+  } else {
+    if (sd.para.use_client_time) {
+      data.time = (new Date()) * 1;
+    }
+  }
+  // Parse super properties that added by registerPage()
+  _.parseSuperProperties(data.properties);
+
+  _.filterReservedProperties(data.properties);
+  _.searchObjDate(data);
+  _.searchObjString(data);
+  // 兼容灼洲app端做的$project和$token而加的代码
+  _.searchZZAppStyle(data);
+
+  //去掉data里的$option
+  var data_config = _.searchConfigData(data.properties);
+
+  //判断是否要给数据增加新用户属性
+  saNewUser.checkIsAddSign(data);
+  saNewUser.checkIsFirstTime(data);
+
+  sd.addReferrerHost(data);
+  sd.addPropsHook(data);
+
+  if (sd.para.debug_mode === true) {
+    sd.log(data);
+    this.debugPath(JSON.stringify(data), callback);
+  } else {
+    sd.sendState.getSendCall(data,data_config,callback);
+  }
+
+};
+
+  // 发送debug数据请求
+saEvent.debugPath = function(data, callback) {
+  var _data = data; //存数据
+  var url = '';
+  if (sd.para.debug_mode_url.indexOf('?') !== -1) {
+    url = sd.para.debug_mode_url + '&data=' + encodeURIComponent(_.base64Encode(data));
+  } else {
+    url = sd.para.debug_mode_url + '?data=' + encodeURIComponent(_.base64Encode(data));
+  }
+
+  _.ajax({
+       url: url,
+       type: 'GET',
+       cors: true,
+       header: {'Dry-Run': String(sd.para.debug_mode_upload)},
+       success:function(data){
+       // debug 模式下 提示框
+        _.isEmptyObject(data) === true ? alert('debug数据发送成功' + _data) : alert('debug失败 错误原因' + JSON.stringify(data));
+       }
+     });
+
+};
 
 })();
 
@@ -3529,218 +3742,219 @@ sendState.pushSend = function(data){
 };
 
 
-var saEvent = {};
+// var saEvent = {};
+var saEvent = _.saEvent;
 
-saEvent.checkOption = {
-  // event和property里的key要是一个合法的变量名，由大小写字母、数字、下划线和$组成，并且首字符不能是数字。
-  regChecks: {
-    regName: /^((?!^distinct_id$|^original_id$|^time$|^properties$|^id$|^first_id$|^second_id$|^users$|^events$|^event$|^user_id$|^date$|^datetime$)[a-zA-Z_$][a-zA-Z\d_$]{0,99})$/i
-  },
-  checkPropertiesKey: function(obj) {
-    var me = this, flag = true;
-    _.each(obj, function(content, key) {
-      if (!me.regChecks.regName.test(key)) {
-        flag = false;
-      }
-    });
-    return flag;
-  },
-  check: function(a, b) {
-    if (typeof this[a] === 'string') {
-      return this[this[a]](b);
-    } else {
-      return this[a](b);
-    }
-  },
-  str: function(s) {
-    if (!_.isString(s)) {
-      sd.log('请检查参数格式,必须是字符串');
-      //return false;
-      return true;
-    } else {
-      return true;
-    }
-  },
-  properties: function(p) {
-    _.strip_sa_properties(p);
-    if (p) {
-      if (_.isObject(p)) {
-        if (this.checkPropertiesKey(p)) {
-          return true;
-        } else {
-          sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
-          //return false;
-          return true;
-        }
-      } else {
-        sd.log('properties可以没有，但有的话必须是对象');
-        return true;
-        //return false;
-      }
-    } else {
-      return true;
-    }
-  },
-  propertiesMust: function(p) {
-    _.strip_sa_properties(p);
-    if (p === undefined || !_.isObject(p) || _.isEmptyObject(p)) {
-      sd.log('properties必须是对象且有值');
-      return true;
-      //return false;
-    } else {
-      if (this.checkPropertiesKey(p)) {
-        return true;
-      } else {
-        sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
-        return true;
-        //return false;
-      }
-    }
-  },
-  // event要检查name
-  event: function(s) {
-    if (!_.isString(s) || !this['regChecks']['regName'].test(s)) {
-      sd.log('请检查参数格式，eventName 必须是字符串，且需是合法的变量名，即不能以数字开头，且只包含：大小写字母、数字、下划线和 $,其中以 $ 开头的表明是系统的保留字段，自定义事件名请不要以 $ 开头');
-      //return false;
-      return true;
-    } else {
-      return true;
-    }
+// saEvent.checkOption = {
+//   // event和property里的key要是一个合法的变量名，由大小写字母、数字、下划线和$组成，并且首字符不能是数字。
+//   regChecks: {
+//     regName: /^((?!^distinct_id$|^original_id$|^time$|^properties$|^id$|^first_id$|^second_id$|^users$|^events$|^event$|^user_id$|^date$|^datetime$)[a-zA-Z_$][a-zA-Z\d_$]{0,99})$/i
+//   },
+//   checkPropertiesKey: function(obj) {
+//     var me = this, flag = true;
+//     _.each(obj, function(content, key) {
+//       if (!me.regChecks.regName.test(key)) {
+//         flag = false;
+//       }
+//     });
+//     return flag;
+//   },
+//   check: function(a, b) {
+//     if (typeof this[a] === 'string') {
+//       return this[this[a]](b);
+//     } else {
+//       return this[a](b);
+//     }
+//   },
+//   str: function(s) {
+//     if (!_.isString(s)) {
+//       sd.log('请检查参数格式,必须是字符串');
+//       //return false;
+//       return true;
+//     } else {
+//       return true;
+//     }
+//   },
+//   properties: function(p) {
+//     _.strip_sa_properties(p);
+//     if (p) {
+//       if (_.isObject(p)) {
+//         if (this.checkPropertiesKey(p)) {
+//           return true;
+//         } else {
+//           sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
+//           //return false;
+//           return true;
+//         }
+//       } else {
+//         sd.log('properties可以没有，但有的话必须是对象');
+//         return true;
+//         //return false;
+//       }
+//     } else {
+//       return true;
+//     }
+//   },
+//   propertiesMust: function(p) {
+//     _.strip_sa_properties(p);
+//     if (p === undefined || !_.isObject(p) || _.isEmptyObject(p)) {
+//       sd.log('properties必须是对象且有值');
+//       return true;
+//       //return false;
+//     } else {
+//       if (this.checkPropertiesKey(p)) {
+//         return true;
+//       } else {
+//         sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
+//         return true;
+//         //return false;
+//       }
+//     }
+//   },
+//   // event要检查name
+//   event: function(s) {
+//     if (!_.isString(s) || !this['regChecks']['regName'].test(s)) {
+//       sd.log('请检查参数格式，eventName 必须是字符串，且需是合法的变量名，即不能以数字开头，且只包含：大小写字母、数字、下划线和 $,其中以 $ 开头的表明是系统的保留字段，自定义事件名请不要以 $ 开头');
+//       //return false;
+//       return true;
+//     } else {
+//       return true;
+//     }
 
-  },
-  test_id: 'str',
-  group_id: 'str',
-  distinct_id: function(id) {
-    if (_.isString(id) && /^.{1,255}$/.test(id)) {
-      return true;
-    } else {
-      sd.log('distinct_id必须是不能为空，且小于255位的字符串');
-      return false;
-    }
-  }
-};
+//   },
+//   test_id: 'str',
+//   group_id: 'str',
+//   distinct_id: function(id) {
+//     if (_.isString(id) && /^.{1,255}$/.test(id)) {
+//       return true;
+//     } else {
+//       sd.log('distinct_id必须是不能为空，且小于255位的字符串');
+//       return false;
+//     }
+//   }
+// };
 
-saEvent.check = function(p) {
-  var flag = true;
-  for (var i in p) {
-    if (!this.checkOption.check(i, p[i])) {
-      return false;
-    }
-  }
-  return flag;
-};
+// saEvent.check = function(p) {
+//   var flag = true;
+//   for (var i in p) {
+//     if (!this.checkOption.check(i, p[i])) {
+//       return false;
+//     }
+//   }
+//   return flag;
+// };
 
-saEvent.send = function(p, callback) {
-  var data = {
-    distinct_id: store.getDistinctId(),
-    lib: {
-      $lib: 'js',
-      $lib_method: 'code',
-      $lib_version: String(sd.lib_version)
-    },
-    properties: {}
-  };
+// saEvent.send = function(p, callback) {
+//   var data = {
+//     distinct_id: store.getDistinctId(),
+//     lib: {
+//       $lib: 'js',
+//       $lib_method: 'code',
+//       $lib_version: String(sd.lib_version)
+//     },
+//     properties: {}
+//   };
 
-  if (_.isObject(p) && _.isObject(p.properties) && !_.isEmptyObject(p.properties) && p.properties.$lib_detail) {
-    data.lib.$lib_detail = p.properties.$lib_detail;
-    delete p.properties.$lib_detail;
-  }
-  //debugger;
-  _.extend(data, sd.store.getUnionId(), p);
+//   if (_.isObject(p) && _.isObject(p.properties) && !_.isEmptyObject(p.properties) && p.properties.$lib_detail) {
+//     data.lib.$lib_detail = p.properties.$lib_detail;
+//     delete p.properties.$lib_detail;
+//   }
+//   //debugger;
+//   _.extend(data, sd.store.getUnionId(), p);
 
-  // 合并properties里的属性
-  if (_.isObject(p.properties) && !_.isEmptyObject(p.properties)) {
-    _.extend(data.properties, p.properties);
-  }
-  /*
-  // 合并lib里的属性
-  if (_.isObject(callback)) {
-    _.extend(data.lib, callback);
-  }
-  */
+//   // 合并properties里的属性
+//   if (_.isObject(p.properties) && !_.isEmptyObject(p.properties)) {
+//     _.extend(data.properties, p.properties);
+//   }
+//   /*
+//   // 合并lib里的属性
+//   if (_.isObject(callback)) {
+//     _.extend(data.lib, callback);
+//   }
+//   */
 
-  // profile时不传公用属性
-  if (!p.type || p.type.slice(0, 7) !== 'profile') {
-    // 传入的属性 > 当前页面的属性 > session的属性 > cookie的属性 > 预定义属性
+//   // profile时不传公用属性
+//   if (!p.type || p.type.slice(0, 7) !== 'profile') {
+//     // 传入的属性 > 当前页面的属性 > session的属性 > cookie的属性 > 预定义属性
 
-    data.properties = _.extend({}, _.info.properties(), store.getProps(), store.getSessionProps(), _.info.currentProps, data.properties);
-    if(sd.para.preset_properties.latest_referrer && !_.isString(data.properties.$latest_referrer)){
-      data.properties.$latest_referrer = '取值异常';
-      // TODO
-      // Do NOT send data here, it will cause too much recursion.
-      //_.jssdkDebug(data.properties,store.getProps());
-      //sd.debug.jssdkDebug(data.properties, store.getProps());
-    }
-    if(sd.para.preset_properties.latest_search_keyword && !_.isString(data.properties.$latest_search_keyword)){
-      data.properties.$latest_search_keyword = '取值异常';
-    }
-    if(sd.para.preset_properties.latest_traffic_source_type && !_.isString(data.properties.$latest_traffic_source_type)){
-      data.properties.$latest_traffic_source_type = '取值异常';
-    }
-    if(sd.para.preset_properties.latest_landing_page && !_.isString(data.properties.$latest_landing_page)){
-      data.properties.$latest_landing_page = '取值异常';
-    }
-  }
+//     data.properties = _.extend({}, _.info.properties(), store.getProps(), store.getSessionProps(), _.info.currentProps, data.properties);
+//     if(sd.para.preset_properties.latest_referrer && !_.isString(data.properties.$latest_referrer)){
+//       data.properties.$latest_referrer = '取值异常';
+//       // TODO
+//       // Do NOT send data here, it will cause too much recursion.
+//       //_.jssdkDebug(data.properties,store.getProps());
+//       //sd.debug.jssdkDebug(data.properties, store.getProps());
+//     }
+//     if(sd.para.preset_properties.latest_search_keyword && !_.isString(data.properties.$latest_search_keyword)){
+//       data.properties.$latest_search_keyword = '取值异常';
+//     }
+//     if(sd.para.preset_properties.latest_traffic_source_type && !_.isString(data.properties.$latest_traffic_source_type)){
+//       data.properties.$latest_traffic_source_type = '取值异常';
+//     }
+//     if(sd.para.preset_properties.latest_landing_page && !_.isString(data.properties.$latest_landing_page)){
+//       data.properties.$latest_landing_page = '取值异常';
+//     }
+//   }
 
-  // 如果$time是传入的就用，否则使用服务端时间
-  if (data.properties.$time && _.isDate(data.properties.$time)) {
-    data.time = data.properties.$time * 1;
-    delete data.properties.$time;
-  } else {
-    if (sd.para.use_client_time) {
-      data.time = (new Date()) * 1;
-    }
-  }
-  // Parse super properties that added by registerPage()
-  _.parseSuperProperties(data.properties);
+//   // 如果$time是传入的就用，否则使用服务端时间
+//   if (data.properties.$time && _.isDate(data.properties.$time)) {
+//     data.time = data.properties.$time * 1;
+//     delete data.properties.$time;
+//   } else {
+//     if (sd.para.use_client_time) {
+//       data.time = (new Date()) * 1;
+//     }
+//   }
+//   // Parse super properties that added by registerPage()
+//   _.parseSuperProperties(data.properties);
 
-  _.filterReservedProperties(data.properties);
-  _.searchObjDate(data);
-  _.searchObjString(data);
-  // 兼容灼洲app端做的$project和$token而加的代码
-  _.searchZZAppStyle(data);
+//   _.filterReservedProperties(data.properties);
+//   _.searchObjDate(data);
+//   _.searchObjString(data);
+//   // 兼容灼洲app端做的$project和$token而加的代码
+//   _.searchZZAppStyle(data);
 
-  //去掉data里的$option
-  var data_config = _.searchConfigData(data.properties);
+//   //去掉data里的$option
+//   var data_config = _.searchConfigData(data.properties);
 
-  //判断是否要给数据增加新用户属性
-  saNewUser.checkIsAddSign(data);
-  saNewUser.checkIsFirstTime(data);
+//   //判断是否要给数据增加新用户属性
+//   saNewUser.checkIsAddSign(data);
+//   saNewUser.checkIsFirstTime(data);
 
-  sd.addReferrerHost(data);
-  sd.addPropsHook(data);
+//   sd.addReferrerHost(data);
+//   sd.addPropsHook(data);
 
-  if (sd.para.debug_mode === true) {
-    sd.log(data);
-    this.debugPath(JSON.stringify(data), callback);
-  } else {
-    sd.sendState.getSendCall(data,data_config,callback);
-  }
+//   if (sd.para.debug_mode === true) {
+//     sd.log(data);
+//     this.debugPath(JSON.stringify(data), callback);
+//   } else {
+//     sd.sendState.getSendCall(data,data_config,callback);
+//   }
 
-};
+// };
 
-  // 发送debug数据请求
-saEvent.debugPath = function(data, callback) {
-  var _data = data; //存数据
-  var url = '';
-  if (sd.para.debug_mode_url.indexOf('?') !== -1) {
-    url = sd.para.debug_mode_url + '&data=' + encodeURIComponent(_.base64Encode(data));
-  } else {
-    url = sd.para.debug_mode_url + '?data=' + encodeURIComponent(_.base64Encode(data));
-  }
+//   // 发送debug数据请求
+// saEvent.debugPath = function(data, callback) {
+//   var _data = data; //存数据
+//   var url = '';
+//   if (sd.para.debug_mode_url.indexOf('?') !== -1) {
+//     url = sd.para.debug_mode_url + '&data=' + encodeURIComponent(_.base64Encode(data));
+//   } else {
+//     url = sd.para.debug_mode_url + '?data=' + encodeURIComponent(_.base64Encode(data));
+//   }
 
-  _.ajax({
-       url: url,
-       type: 'GET',
-       cors: true,
-       header: {'Dry-Run': String(sd.para.debug_mode_upload)},
-       success:function(data){
-       // debug 模式下 提示框
-        _.isEmptyObject(data) === true ? alert('debug数据发送成功' + _data) : alert('debug失败 错误原因' + JSON.stringify(data));
-       }
-     });
+//   _.ajax({
+//        url: url,
+//        type: 'GET',
+//        cors: true,
+//        header: {'Dry-Run': String(sd.para.debug_mode_upload)},
+//        success:function(data){
+//        // debug 模式下 提示框
+//         _.isEmptyObject(data) === true ? alert('debug数据发送成功' + _data) : alert('debug失败 错误原因' + JSON.stringify(data));
+//        }
+//      });
 
-};
+// };
 
 /*
 cookie的数据存储
