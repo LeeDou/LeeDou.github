@@ -25,7 +25,7 @@ env:
 
   REMOTE_HOST: ${{ secrets._HOST }}
   REMOTE_PORT: ${{ secrets._PORT }}
-  REMOTE_USER: ${{ secrets._USERNAME }}
+  REMOTE_USER: ${{ secrets._USER }}
   SSH_PRIVATE_KEY: ${{ secrets._SECRET }}
 
 
