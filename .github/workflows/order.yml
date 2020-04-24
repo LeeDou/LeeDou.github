@@ -20,7 +20,7 @@ env:
 
   BUILD_SCRIPT: "npm run newprod"
   ARGS: "-rltgoDzvO --delete"
-  TARGET: "/home/rsynctest/vwork${{github.run_number}}"    # 这个一定是rsync 用户的有权权限的目录
+  TARGET: "/data/github/vwork${{github.run_number}}"    # 这个一定是rsync 用户的有权权限的目录
   WWWROOT_DIR: "/home/rsynctest"
 
   REMOTE_HOST: ${{ secrets._HOST }}
