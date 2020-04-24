@@ -17,10 +17,10 @@
 //   hash: false,
 // }
 
-var initdomains = function(sd, option) {
+var initdomains = function(option) {
   var ArrayProto = Array.prototype;
-  var sd = sd,
-      _ = sd._,
+  var sd = sensors;
+  var _ = sd._,
       store = sd.store,
       para = sd.para;
       // saEvent = sd.saEvent;
@@ -65,7 +65,7 @@ var initdomains = function(sd, option) {
     target.href = nurl;
     setTimeout(function(){
       target.href = url;
-    }, 10000)
+    }, 12000)
     return nurl;
   };
 
@@ -96,7 +96,6 @@ var initdomains = function(sd, option) {
     var param = target.split('&');
     for(var i=0,len = param.length; i < len; i++) {
       var tep = param[i].split('=');
-      console.log("tep: ", tep)
       if(tep[0] === key) {
         return tep[1];
       }
@@ -110,7 +109,6 @@ var initdomains = function(sd, option) {
     if(!isSameDomain(reffer)){
       var isAnonymousId = getUrlId().substring(0,1) === 'a',
           urlId = getUrlId().substring(1);
-          console.log('distinctid: ', store.getDistinctId());
       if(urlId && isAnonymousId && store.getFirstId()) {
         _.saEvent.send({
           original_id: urlId,
@@ -131,7 +129,20 @@ var initdomains = function(sd, option) {
   }
 
   function addListen() {
-    document.addEventListener('mousedown', function(event){
+    // document.addEventListener('mousedown', function(event){
+    //   var target = event.target || event.srcElement || {};
+    //   var nodeName = target.tagName;
+    //   if(nodeName.toLowerCase() === "a" && target.href) {
+    //     var protocol = target.href.protocol;
+    //     var host = _.getHostname(target.href);
+    //     if(protocol === 'http' || protocol === 'https' || _.include(option.domain, host)) {
+    //       if(!isSameDomain(host)) {
+    //         sd.rewireteUrl(target, target.href);
+    //       }
+    //     }
+    //   }
+    // });
+    _.addEvent(document, 'mousedown', function(event){
       var target = event.target || event.srcElement || {};
       var nodeName = target.tagName;
       if(nodeName.toLowerCase() === "a" && target.href) {
@@ -143,8 +154,7 @@ var initdomains = function(sd, option) {
           }
         }
       }
-    });
-    _.addEvent()
+    })
   }
 
   // function replyUrl(target, url) {
@@ -169,4 +179,4 @@ var initdomains = function(sd, option) {
 //   initdomains(window['sensorsDataAnalytic201505'], {domain: ['leedou.top', 'li.com'], hash: false});
 // }
 
-window['sensorsDataAnalytic201505'].modules = { cross_domain: initdomains}
+window['sensorsDataAnalytic201505'].modules = { cross_domain: initdomains }
