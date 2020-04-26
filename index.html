@@ -45,9 +45,9 @@
     });
   </script>
 <script src="sensors.js"></script>
-<script src="cross_domain.js"></script>
+<script src="crossDomain.js"></script>
 <script>
-  sensors.modules.cross_domain({domain: ['leedou.top', 'li.com']});
+  sensors.modules.cross_domain.init(sensors, {domain: ['leedou.top', 'li.com']});
   sensors.quick('autoTrack');
 </script>
 
