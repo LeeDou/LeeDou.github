@@ -180,6 +180,7 @@ crossDomain.addListen = function() {
 };
 
 crossDomain.init = function(sd, option) {
+  this.sd = sd;
   this._ = sd._;
   this.store = sd.store;
   this.para = sd.para;
