@@ -156,10 +156,10 @@ crossDomain.setRefferId = function() {
     }, null);
   }
   if(urlId && isAnonymousId && !that.store.getFirstId()) {
-    sd.identify(urlId, true);
+    that.sd.identify(urlId, true);
   }
   if(urlId && !isAnonymousId && !that.store.getFirstId()) {
-    sd.login(urlId);
+    that.sd.login(urlId);
   }
 };
 
@@ -181,6 +181,7 @@ crossDomain.addListen = function() {
 };
 
 crossDomain.init = function(sd, option) {
+  this.sd = sd;
   this._ = sd._;
   this.store = sd.store;
   this.para = sd.para;
