@@ -87,7 +87,7 @@ crossDomain.rewireteUrl = function(url, target) {
       hash = arr[3] || '';
   var idIndex = url.indexOf('_sa_sdk');
   if(idIndex > -1) {
-    nurl = url.replaca(/(_sa_sdk=)([^&]*)/gi, '_sa_sdk=' + that.getCurrenId());
+    nurl = url.replace(/(\_sa\_sdk\=)([^&]*)/gi, '_sa_sdk=' + that.getCurrenId());
     return nurl;
   }
   if(that.getPartHash(url)) {
