@@ -121,7 +121,7 @@ crossDomain.getUrlId = function() {
   var that = this;
   var location = document.location,
       search = location.search.split('?')[1],
-      hash = location.hash.split['?'][1];
+      hash = location.hash.split('?')[1];
   var searchId = that.getUrlValue(search, '_sa_sdk') || '',
       hashId = that.getUrlValue(hash, '_sa_sdk') || '';
   return searchId ? decodeURIComponent(searchId) : decodeURIComponent(hashId);
