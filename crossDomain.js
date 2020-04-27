@@ -88,9 +88,8 @@ crossDomain.rewireteUrl = function(url, target) {
   var idIndex = url.indexOf('_sa_sdk');
   if(idIndex > -1) {
     nurl = url.replace(/(\_sa\_sdk\=)([^&]*)/gi, '_sa_sdk=' + that.getCurrenId());
-    return nurl;
   }
-  if(that.getPartHash(url)) {
+  if(idIndex === -1 && that.getPartHash(url)) {
     var queryIndex = hash.indexOf('?');
     if(queryIndex > -1) {
       nurl = host + search + '#' + hash.substring(1) + '&_sa_sdk=' + that.getCurrenId();
@@ -181,7 +180,6 @@ crossDomain.addListen = function() {
 };
 
 crossDomain.init = function(sd, option) {
-  this.sd = sd;
   this._ = sd._;
   this.store = sd.store;
   this.para = sd.para;
@@ -198,7 +196,7 @@ crossDomain.init = function(sd, option) {
       if(option[i].hasOwnProperty('part_url') && option[i].hasOwnProperty('after_hash')) {
         arr.push(option[i]);
       } else {
-        sd.log('配置的 option 格式不对，勤检查参数格式！');
+        that.sd.log('配置的 option 格式不对，勤检查参数格式！');
       }
     }
     option = arr;
