@@ -85,20 +85,28 @@ crossDomain.rewireteUrl = function(url, target) {
   var host = arr[1] || '',
       search = arr[2] || '',
       hash = arr[3] || '';
-  var idIndex = url.indexOf('_sa_sdk');
-  if(idIndex > -1) {
-    nurl = url.replace(/(\_sa\_sdk\=)([^&]*)/gi, '_sa_sdk=' + that.getCurrenId());
-  }
-  if(idIndex === -1 && that.getPartHash(url)) {
+      var idIndex;
+  if(that.getPartHash(url)) {
+    idIndex = hash.indexOf('_sa_sdk');
     var queryIndex = hash.indexOf('?');
     if(queryIndex > -1) {
-      nurl = host + search + '#' + hash.substring(1) + '&_sa_sdk=' + that.getCurrenId();
+      if(idIndex > -1) {
+        nurl = host + search + '#' + hash.substring(1, idIndex) + '_sa_sdk=' + that.getCurrenId();
+      } else {
+        nurl = host + search + '#' + hash.substring(1) + '&_sa_sdk=' + that.getCurrenId();
+      }
     } else {
       nurl = host + search + '#' + hash.substring(1) + '?_sa_sdk=' + that.getCurrenId();
     }
   } else {
-    nurl = host + '?' + search.substring(1) + '&_sa_sdk=' + that.getCurrenId() + hash;
+    idIndex = search.indexOf('_sa_sdk');
+    if(idIndex > -1) {
+      nurl = host + '?' + search.substring(1, idIndex) + '_sa_sdk=' + that.getCurrenId() + hash;
+    } else {
+      nurl = host + '?' + search.substring(1) + '&_sa_sdk=' + that.getCurrenId() + hash;
+    }
   }
+  
   if(target) {
     target.href = nurl;
   }
@@ -146,7 +154,7 @@ crossDomain.setRefferId = function() {
     return;
   }
   if(urlId && isAnonymousId && that.store.getFirstId()) {
-    that._.saEvent.send({
+    that.sd.saEvent.send({
       original_id: urlId,
       distinct_id: distinct_id,
       type: 'track_signup',
@@ -197,7 +205,7 @@ crossDomain.init = function(sd, option) {
       if(option[i].hasOwnProperty('part_url') && option[i].hasOwnProperty('after_hash')) {
         arr.push(option[i]);
       } else {
-        that.sd.log('配置的 option 格式不对，勤检查参数格式！');
+        sd.log('配置的 option 格式不对，勤检查参数格式！');
       }
     }
     option = arr;
