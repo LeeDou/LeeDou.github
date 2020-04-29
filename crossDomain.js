@@ -154,6 +154,7 @@ crossDomain.setRefferId = function() {
     return;
   }
   if(urlId && isAnonymousId && that.store.getFirstId()) {
+    that.sd.identify(urlId, true);
     that.sd.saEvent.send({
       original_id: urlId,
       distinct_id: distinct_id,
