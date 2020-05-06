@@ -18,39 +18,43 @@
 
 </head>
 
-  <script>
-    (function(para) {
-      if(typeof(window['sensorsDataAnalytic201505']) !== 'undefined') {
-        return false;
-      }
-      window['sensorsDataAnalytic201505'] = para.name;
-      window[para.name] = {
-        para: para
-      };
+<script>
+  (function(para) {
+    var p = para.sdk_url, n = para.name, w = window, d = document, s = 'script',x = null,y = null;
+    w['sensorsDataAnalytic201505'] = n;
+    w[n] = w[n] || function(a) {return function() {(w[n]._q = w[n]._q || []).push([a, arguments]);}};
+    var ifs = ['useModulePlugin','track','quick', 'register','registerPage','registerOnce','clearAllRegister','trackSignup', 'trackAbtest', 	'setProfile','setOnceProfile','appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 	'identify','login','logout','trackLink','clearAllRegister'];
+    for (var i = 0; i < ifs.length; i++) {
+      w[n][ifs[i]] = w[n].call(null, ifs[i]);
+    }
+    if (!w[n]._t) {
+      x = d.createElement(s), y = d.getElementsByTagName(s)[0];
+      x.async = 1;
+      x.src = p;
+      w[n].para = para;
+      y.parentNode.insertBefore(x, y);
+    }
   })({
-      name: 'sensors',
+    sdk_url: 'sensors.js',
+    name: 'sa',
       server_url:'https://test-syg.datasink.sensorsdata.cn/sa?project=likang&token=27f1e21b78daf376',
-      //如果神策代码中 `sensorsdata.min.js` 是 1.13.1 以前的版本，必须须配置 heatmap_url，高于此版本不需要配置。heatmap_url 神策分析中点击分析及触达分析功能代码，代码生成工具会自动生成。
-      heatmap_url: "在 GitHub 下载新版本的 heatmap.min.js ",
-      //如果神策后台版本及 `sensorsdata.min.js` 均是 1.10 及以上版本，不需要配置 web_url 参数。web_url 神策分析中点击分析及触达分析功能会用到此地址，代码生成工具会自动生成。
-      web_url:"神策分析后台地址",
-      heatmap: {
-         //是否开启点击图，默认 default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭
-         //需要 Web JS SDK 版本号大于 1.7
-         clickmap:'default',
-         //是否开启触达注意力图，默认 not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启
-         //需要 Web JS SDK 版本号大于 1.9.1
-         scroll_notice_map:'not_collect'
-      }
-    });
+    // server_url:'数据接收地址',
+    heatmap: {
+      //是否开启点击图，默认 default 表示开启，自动采集 $WebClick 事件，可以设置 'not_collect' 表示关闭
+      clickmap:'default',
+      //是否开启触达注意力图，默认 not_collect 表示关闭，不会自动采集 $WebStay 事件，可以设置 'default' 表示开启
+      scroll_notice_map:'not_collect'
+    }
+  }); 
+  sa.useModulePlugin('SiteLinker', {
+    linker: [
+      {'part_url': 'leedou.top', 'after_hash': false }, {'part_url': 'li.com', 'after_hash': false}, 
+      {part_url: 'github.io', after_hash: false}
+    ]
+  })
+  sa.quick('autoTrack'); //神策系统必须是 1.4 最新版及以上
   </script>
 <script src="sensors.js"></script>
-<script src="crossDomain.js"></script>
-<script>
-  sensors.modules.cross_domain.init(sensors, [{'part_url': 'leedou.top', 'after_hash':false }, {'part_url': 'li.com', 'after_hash': false}, {
-    'part_url': 'github.io', after_hash: true}]);
-  sensors.quick('autoTrack');
-</script>
 
 <body>
 
