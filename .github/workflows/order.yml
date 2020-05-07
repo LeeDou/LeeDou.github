@@ -20,39 +20,13 @@ env:
 
   BUILD_SCRIPT: "npm run newprod"
   ARGS: "-rltgoDzvO --delete"
-  TARGET: "/data/github"    # 这个一定是rsync 用户的有权权限的目录
+  TARGET: "/home/rsynctest/vwork${{github.run_number}}"    # 这个一定是rsync 用户的有权权限的目录
   WWWROOT_DIR: "/home/rsynctest"
 
-  REMOTE_HOST: "49.234.4.80"
-  REMOTE_PORT: "22"
-  REMOTE_USER: "root"
-  SSH_PRIVATE_KEY: "-----BEGIN RSA PRIVATE KEY-----
-MIIEpAIBAAKCAQEA8eUp8FUITKi+x4wUyEOgFamlE8MlGR44q9rrkgxortsGcy5R
-5D30ZJKJwBWXxM7RlHWWi9kwNT0IlPGVOE1Q4JVrMD4W8cLAPngg8Wqnfb7YYMP4
-ZZvfm3FP+XAroiX37u+4R5L0jt1AK9x25WOD3rPLBch3/xuEF5K6c8kWxdOo9E7K
-J/WYTJO0CH92DSTyc3Cu+kOm90BwIQwLYZ0B3zH5xkQOefmbrAX6iwLadQQbGUGt
-q82DoEbh4xnbHKylqzMKQPI9fJPFDNdtdtSLi7skFk0cOleN+o0TDtzLzFJ7ReuJ
-Wko8yBqA5qK16Ay7STSa7CaG5uiWAeU53WxGSwIDAQABAoIBAQCMKEEtnMdrS5cH
-HjZody6JfrtEgRy8uhMSGI3IGOKK9iN9l4ghnHg/0dx47Mn8Ye1zfNKXA2f4YP3Y
-90WD0uCa0FjEIiW/PR2Q1KAZ4bdcl7jeEI6bqT5d3cD+Aa12jVNkIYgACLklEjN9
-dod5kDi3UCvBlQ9aREI8OmtIbWqBgmsJIl1JKAsZtgwct4zE0CZhBeHOpfElnUzu
-* Connection closed *aVDiUbpUB7guDPGT3KOGd4DbilmeXim2vbxXgoyNkAR
-0vYCLJDKrdMcyXHSaloQclfnzNkQkN3uzOpkj6fCty3uhVUXxC/f9bvNhVmdahdx
-Ot7+fsDhAoGBAPyuRIkjMTfTMf6wMwruDBD0W+m1r5Ve4qSmGTvHwGeZ2Rjt3NrM
-xWd4HYiBnCqC6+XCWbBVdvLQh78P8D5bWSGXnKqnV8NZIEr9Jm3Q9Vq3kL819i+b
-nMOWK0B+S0F1nxLGHMgZI0jYu/NDH+SDXLDKTsZYU0AB/5aeMshrE+RxAoGBAPUS
-oCvrqLbWC16WpAJao8wxEms8jrsRvxfXOlOS7tXQGFP/VfxhYEkhsQNTDMA6v7kg
-QFJmU+rIGUjMaAAi0xf+EhjkO8Dc/cQY7xjQRB60ozgPgcpMoP5uoGxF4S/bP54H
-sWhDAXsP0u+7Qo8u3gjqyyKXA1gGuK5p3Q/u58R7AoGAV2e40W9ZASSPMLimj2tU
-xTCh8rAkcpkF8Up7hBBO4Ad574OoWA9pYadNIAElkhcDntCh0btekBPOQSs0QX27
-0UDusqF8XFiiMQ5skqQrmxvQeDQkWseLbKSvhXmqcpRLWGUrY5Q+fl5qdXWMvLEs
-CQOSSE4ZThTi4qkKjAVuNiECgYA3OWs+emwaR0Fonyl2HlaqvKQZ5huDrAwTozxR
-eNq485uH0hHePVMlJ6JrzVsiNhrd7JaR+t0OGukXrngBD9fhoC8TzNpqK2JDvhqi
-zMuM38en6lak73+X1fXwcA6+afl78t/XTsIWqQovW1M0UKtX9xCvSrhGLb2QD+rw
-nDU94QKBgQCq1yV6+oHLkigRTGN30o7m/cKq05rZUMf3nlFcyACKfLB22eJgrLbS
-Yx+gLiIl20pX1EurgpeEldFH5RkVW7K+DIRLdPV5BLp/aqdeavQCXG0Af8JOKVP7
-lEpGiEMKVwIW6P4aAPVD91j5BERxErJJdQypmgu+wpFl/RfWkyiQqA==
------END RSA PRIVATE KEY-----"
+  REMOTE_HOST: ${{ secrets._HOST }}
+  REMOTE_PORT: ${{ secrets._PORT }}
+  REMOTE_USER: ${{ secrets._USERNAME }}
+  SSH_PRIVATE_KEY: ${{ secrets._SECRET }}
 
 
 
@@ -103,27 +77,25 @@ jobs:
         name: dist
     - run: ls -la
 
-  #    use ssh-deploy
-   - name: ssh-deploy
-     uses: easingthemes/ssh-deploy@v2.0.7
-     env:
-         SSH_PRIVATE_KEY: ${{ secrets._SECRET }}
-         ARGS: "-rltgoDzvO --delete"
-         #SOURCE: dist/
-         SOURCE: ./dist.zip
-         REMOTE_HOST: ${{env.REMOTE_HOST}}
-         REMOTE_USER: "root"
+    #  use ssh-deploy
+#    - uses: easingthemes/ssh-deploy@v2.0.7
+#      env:
+#          SSH_PRIVATE_KEY: ${{ secrets._SECRET }}
+#          ARGS: "-rltgoDzvO --delete"
+#          #SOURCE: dist/
+#          SOURCE: ./dist.zip
+#          REMOTE_HOST: ${{ secrets._HOST }}
+#          REMOTE_USER: ${{ secrets._USER }}
+#          TARGET: ${{env.TARGET}}
 
-         TARGET: ${{env.TARGET}}
-
-     #use rsync-deployments
-    # - name: rsync deployments
-    #   uses: contention/rsync-deployments@v1.0.0
-    #   env:
-    #     DEPLOY_KEY: ${{env.SSH_PRIVATE_KEY}}
-    #     UPLOAD_DIR: ${{env.TARGET}}
-    #   with:
-    #     args: "-avzr --delete ${{env.REMOTE_USER}}@${{env.REMOTE_HOST}}:${{env.UPLOAD_DIR}}"
+    #  use rsync-deployments
+    - name: rsync deployments
+      uses: contention/rsync-deployments@v1.0.0
+      env:
+        DEPLOY_KEY: ${{env.SSH_PRIVATE_KEY}}
+        UPLOAD_DIR: ${{env.TARGET}}
+      with:
+        args: "-avzr --delete ${{env.REMOTE_USER}}@${{env.REMOTE_HOST}}:${{env.UPLOAD_DIR}}"
 
 
     #  use ssh-commands
