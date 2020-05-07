@@ -19,7 +19,6 @@ sdk的初始化和组织
 try{
 
 
-
 var sd = {};
 
 sd.modules = {};
@@ -2665,7 +2664,10 @@ sd.debug = {
           }
         }
       });
-    }
+    },
+    useModulePlugin: sd.use,
+    useAppPlugin: this.setPlugin
+    
     /*,
     pluginIsReady: function(para){
       // sdk先加载，popup后加载调用 quick('pluginIsReady',{name:popup,self:this})
@@ -2694,7 +2696,7 @@ sd.debug = {
   };
 
   // 调用 modules 插件的 init 方法
-  sd.useModulePlugin = function(name, option) {
+  sd.use = function(name, option) {
     if(_.isObject(sd.modules) && _.isObject(sd.modules[name]) && _.isFunction(sd.modules[name].init)){
       option = option || {};
       sd.modules[name].init(sd, option);
@@ -4629,7 +4631,6 @@ _.each(methods, function(method) {
   };
 });
 
-
 (function(){
   var siteLinker = {};
 
@@ -4814,7 +4815,6 @@ _.each(methods, function(method) {
 
   sd.modules['SiteLinker'] = siteLinker;
 })()
-
 
 
 if (typeof window['sensorsDataAnalytic201505'] === 'string'){
