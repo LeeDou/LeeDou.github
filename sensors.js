@@ -2665,9 +2665,10 @@ sd.debug = {
         }
       });
     },
-    useModulePlugin: sd.use,
+    useModulePlugin: function() {
+      sd.use.apply(sd, arguments);
+    },
     useAppPlugin: this.setPlugin
-    
     /*,
     pluginIsReady: function(para){
       // sdk先加载，popup后加载调用 quick('pluginIsReady',{name:popup,self:this})
