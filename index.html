@@ -15,6 +15,100 @@
   <meta name="description" content="博客">
 
   <meta name="viewport" content="width=device-width,initial-scale=1">
+	
+	
+	
+	
+	<script src="./popup.js"></script>
+    <script>
+      (function (para) {
+        var p = para.sdk_url,
+          n = para.name,
+          w = window,
+          d = document,
+          s = "script",
+          x = null,
+          y = null;
+        if (typeof w["sensorsDataAnalytic201505"] !== "undefined") {
+          return false;
+        }
+        w["sensorsDataAnalytic201505"] = n;
+        w[n] =
+          w[n] ||
+          function (a) {
+            return function () {
+              (w[n]._q = w[n]._q || []).push([a, arguments]);
+            };
+          };
+        var ifs = [
+          "track",
+          "quick",
+          "register",
+          "registerPage",
+          "registerOnce",
+          "trackSignup",
+          "trackAbtest",
+          "setProfile",
+          "setOnceProfile",
+          "appendProfile",
+          "incrementProfile",
+          "deleteProfile",
+          "unsetProfile",
+          "identify",
+          "login",
+          "logout",
+          "trackLink",
+          "clearAllRegister",
+          "getAppStatus",
+        ];
+        for (var i = 0; i < ifs.length; i++) {
+          w[n][ifs[i]] = w[n].call(null, ifs[i]);
+        }
+        if (!w[n]._t) {
+          (x = d.createElement(s)), (y = d.getElementsByTagName(s)[0]);
+          x.async = 1;
+          x.src = p;
+          x.setAttribute("charset", "UTF-8");
+          w[n].para = para;
+          y.parentNode.insertBefore(x, y);
+        }
+      })({
+        sdk_url: "./sensors.js",
+        heatmap_url:
+          "https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.14.22/heatmap.min.js",
+        name: "sensors",
+        heatmap: {},
+        server_url: "http://10.42.152.233:8106/sa?project=default",
+      });
+      sensors.track("autoTrack");
+      sensors.quick("setPlugin", {
+        popup: function (self) {
+          self.init({
+            api_base_url: "http://sf16qatest.debugbox.sensorsdata.cn/api/v2/",
+            project: "default",
+            platform: "H5",
+            popup_listener: {
+              onClick: function (plan_id, action) {
+                console.log("onClick plan_id", plan_id);
+                console.log("onClick action", action);
+                alert(JSON.stringify(action));
+              },
+              onLoadSuccess: function (plan_id) {
+                console.log("onLoadSuccess", plan_id);
+              },
+              onLoadFailed: function (plan_id, code, message) {
+                console.log("onLoadFailed plan_id", plan_id);
+                console.log("onLoadFailed code", code);
+                console.log("onLoadFailed message", message);
+              },
+              onClose: function (plan_id) {
+                console.log("onClose", plan_id);
+              },
+            },
+          });
+        },
+      });
+    </script>
 
 </head>
 
@@ -22,7 +116,7 @@
 <script>
 	var sensors = window['sensorsDataAnalytic201505'];
 	sensors.init({
-    	sdk_url: 'sensors.js',
+    	sdk_url: './sensors.js',
   		heatmap_url: 'https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.15.1/heatmap.min.js',
   		server_url: 'http://test-syg.datasink.sensorsdata.cn/sa?token=27f1e21b78daf376&project=likang'    
   });
