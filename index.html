@@ -112,23 +112,6 @@
 
 </head>
 
-<script src="sensors.js"></script>
-<script>
-	var sensors = window['sensorsDataAnalytic201505'];
-	sensors.init({
-    	sdk_url: './sensors.js',
-  		heatmap_url: 'https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.15.1/heatmap.min.js',
-  		server_url: 'http://test-syg.datasink.sensorsdata.cn/sa?token=27f1e21b78daf376&project=likang'    
-  });
-  sensors.quick('useModulePlugin', 'SiteLinker', {
-    linker: [
-      {'part_url': 'leedou.top', 'after_hash': false }, {'part_url': 'li.com', 'after_hash': false}, 
-      {part_url: 'github.io', after_hash: false}
-    ]
-  })
-	sensors.quick('autoTrack');
-</script>
-
 <body>
 
   <div class="wrapper">
