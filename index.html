@@ -1,88 +1,168 @@
-<!doctype html>
+<!DOCTYPE html>
 <!-- The Time Machine GitHub pages theme was designed and developed by Jon Rohan, on Feb 7, 2012. -->
 <!-- Follow him for fun. http://twitter.com/jonrohan. Tail his code on https://github.com/jonrohan -->
 <html>
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
 
-  <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen">
-  <link rel="stylesheet" href="stylesheets/github-dark.css">
-  <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="stylesheets/stylesheet.css" media="screen" />
+    <link rel="stylesheet" href="stylesheets/github-dark.css" />
+    <!-- <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
   <script type="text/javascript" src="javascripts/script.js"></script> -->
 
-  <title>Leedou.GitHub</title>
-  <meta name="description" content="博客">
+    <title>Leedou.GitHub</title>
+    <meta name="description" content="博客" />
 
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-	
-	
-	
-	
-	    <script src="../popup.js"></script>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+    <script src="http://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
     <script>
-        (function(para) {
-          var p = para.sdk_url, n = para.name, w = window, d = document, s = 'script',x = null,y = null;
-          if(typeof(w['sensorsDataAnalytic201505']) !== 'undefined') {
-              return false;
-          }
-          w['sensorsDataAnalytic201505'] = n;
-          w[n] = w[n] || function(a) {return function() {(w[n]._q = w[n]._q || []).push([a, arguments]);}};
-          var ifs = ['track','quick','register','registerPage','registerOnce','trackSignup', 'trackAbtest', 'setProfile','setOnceProfile','appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 'identify','login','logout','trackLink','clearAllRegister','getAppStatus'];
-          for (var i = 0; i < ifs.length; i++) {
-            w[n][ifs[i]] = w[n].call(null, ifs[i]);
-          }
-          if (!w[n]._t) {
-            x = d.createElement(s), y = d.getElementsByTagName(s)[0];
-            x.async = 1;
-            x.src = p;
-            x.setAttribute('charset','UTF-8');
-            w[n].para = para;
-            y.parentNode.insertBefore(x, y);
-          }
-        })({
-          sdk_url: './sensors.js',
-          heatmap_url: 'https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.14.22/heatmap.min.js',
-          name: 'sensors',
-          heatmap: {},
-          server_url: 'http://10.120.197.153:8106/sa?project=default&token=schemaLimited-KVeX4uIe'
-        });
-       
-        sensors.quick('setPlugin',{
-          popup: function(self){
-            self.init({
-               show_log:true,
-               api_base_url:'http://10.120.111.129:8202/api/v2/',
-               popup_listener: {
-                openlink:'auto',
-                 onClick:function(plan_id,action){
-                   console.log('onClick plan_id',plan_id)
-                   console.log('onClick action',action)
-                   alert(JSON.stringify(action));
-                 },
-                 onLoadSuccess:function(plan_id){
-                  console.log('onLoadSuccess',plan_id)
-                 },
-                 onLoadFailed: function(plan_id,code,message){
-                  console.log('onLoadFailed plan_id', plan_id);
-                  console.log('onLoadFailed code', code);
-                  console.log('onLoadFailed message', message);
-                 },
-                 onClose:function(plan_id){
-                  console.log('onClose',plan_id)
-                 }
-               }
-            })
-          }
-        })
-        </script>
+      //step1.创建XMLHTTPRequest对象,对于低版本的IE，需要换一个ActiveXObject对象
+      var xhr;
+      if (window.XMLHttpRequest) {
+        xhr = new XMLHttpRequest();
+      } else {
+        xhr = new ActiveXObject('Microsoft.XMLHTTP');
+      }
 
+      //>>step2.使用open方法设置和服务器的交互信息:
+      //设置请求的url参数,参数一是请求的类型,参数二是请求的url,参数三指定是否使用异步，默认是true
+      xhr.open(
+        'get',
+        'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxb626ae824b5621fe&secret=fbb4aab55ecc01b9fe35773502f2b26f',
+        true
+      );
+      //post请求一定要添加请求头才行不然会报错
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
-</head>
+      //>>step3.发送请求 GET请求不需要参数，POST请求需要把body部分以字符串或者FormData对象传进去。
+      xhr.send();
 
-<body>
+      //>>step4.注册事件 onreadystatechange 状态改变就会调用
+      xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4) {
+          // 成功完成
+          // 判断响应结果:
+          if (xhr.status === 200) {
+            // 成功，通过responseText拿到响应的文本:
+            console.log(xhr.responseText);
+          } else {
+            // 失败，根据响应码判断失败原因:
+            console.log(xhr.status);
+          }
+        } else {
+          // HTTP请求还在继续...
+        }
+      };
+    </script>
 
-<!--   <div class="wrapper">
+    <script>
+      wx.config({
+        debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印
+        appId: 'wxb626ae824b5621fe', // 必填，公众号的唯一标识
+        timestamp: '', // 必填，生成签名的时间戳
+        nonceStr: '', // 必填，生成签名的随机串
+        signature: '', // 必填，签名
+        jsApiList: [], // 必填，需要使用的JS接口列表
+        openTagList: [], // 可选，需要使用的开放标签列表，例如['wx-open-launch-app']
+      });
+    </script>
+    <script src="../popup.js"></script>
+    <script>
+      (function (para) {
+        var p = para.sdk_url,
+          n = para.name,
+          w = window,
+          d = document,
+          s = 'script',
+          x = null,
+          y = null;
+        if (typeof w['sensorsDataAnalytic201505'] !== 'undefined') {
+          return false;
+        }
+        w['sensorsDataAnalytic201505'] = n;
+        w[n] =
+          w[n] ||
+          function (a) {
+            return function () {
+              (w[n]._q = w[n]._q || []).push([a, arguments]);
+            };
+          };
+        var ifs = [
+          'track',
+          'quick',
+          'register',
+          'registerPage',
+          'registerOnce',
+          'trackSignup',
+          'trackAbtest',
+          'setProfile',
+          'setOnceProfile',
+          'appendProfile',
+          'incrementProfile',
+          'deleteProfile',
+          'unsetProfile',
+          'identify',
+          'login',
+          'logout',
+          'trackLink',
+          'clearAllRegister',
+          'getAppStatus',
+        ];
+        for (var i = 0; i < ifs.length; i++) {
+          w[n][ifs[i]] = w[n].call(null, ifs[i]);
+        }
+        if (!w[n]._t) {
+          (x = d.createElement(s)), (y = d.getElementsByTagName(s)[0]);
+          x.async = 1;
+          x.src = p;
+          x.setAttribute('charset', 'UTF-8');
+          w[n].para = para;
+          y.parentNode.insertBefore(x, y);
+        }
+      })({
+        sdk_url: './sensors.js',
+        heatmap_url:
+          'https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.14.22/heatmap.min.js',
+        name: 'sensors',
+        heatmap: {},
+        server_url:
+          'http://10.120.197.153:8106/sa?project=default&token=schemaLimited-KVeX4uIe',
+      });
+
+      sensors.quick('setPlugin', {
+        popup: function (self) {
+          self.init({
+            show_log: true,
+            api_base_url: 'http://10.120.111.129:8202/api/v2/',
+            popup_listener: {
+              openlink: 'auto',
+              onClick: function (plan_id, action) {
+                console.log('onClick plan_id', plan_id);
+                console.log('onClick action', action);
+                alert(JSON.stringify(action));
+              },
+              onLoadSuccess: function (plan_id) {
+                console.log('onLoadSuccess', plan_id);
+              },
+              onLoadFailed: function (plan_id, code, message) {
+                console.log('onLoadFailed plan_id', plan_id);
+                console.log('onLoadFailed code', code);
+                console.log('onLoadFailed message', message);
+              },
+              onClose: function (plan_id) {
+                console.log('onClose', plan_id);
+              },
+            },
+          });
+        },
+      });
+    </script>
+  </head>
+
+  <body>
+    <!--   <div class="wrapper">
     <header>
       <h1 class="title">Leedou个人博客</h1>
     </header>
@@ -128,13 +208,13 @@
     <a href="https://github.com/LeeDou/LeeDou.github/tarball/master" class="tar">tar</a><a href="https://github.com/LeeDou/LeeDou.github/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
     <p class="name"></p>
   </div> -->
-  <div style="text-align: center"> 鄂ICP备20001815号-1 </div>
+    <div style="text-align: center;">鄂ICP备20001815号-1</div>
 
-  <script>
-    var btn = document.getElementsByClassName('btn')[0];
-    btn.addEventListener('click', function(event){
-      sensors.track('btn', event);
-    })
-  </script>
-</body>
+    <script>
+      var btn = document.getElementsByClassName('btn')[0];
+      btn.addEventListener('click', function (event) {
+        sensors.track('btn', event);
+      });
+    </script>
+  </body>
 </html>
