@@ -17,119 +17,132 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
 
     <script src="http://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+
+    <script charset="UTF-8" src="./sensorsdata.js"></script>
+    <script charset="UTF-8">
+      var sensors = window['sensorsDataAnalytic201505'];
+      sensors.init({
+        server_url: 'http://10.129.141.215:8106/sa?project=default',
+        heatmap:{scroll_notice_map:'not_collect'},
+        is_track_single_page:true,
+        use_client_time:true,
+        send_type:'beacon'    
+      });
+      sensors.quick('autoTrack');
+    </script>
     <script>
       //step1.创建XMLHTTPRequest对象,对于低版本的IE，需要换一个ActiveXObject对象
-      var xhr;
-      if (window.XMLHttpRequest) {
-        xhr = new XMLHttpRequest();
-      } else {
-        xhr = new ActiveXObject('Microsoft.XMLHTTP');
-      }
+    //   var xhr;
+    //   if (window.XMLHttpRequest) {
+    //     xhr = new XMLHttpRequest();
+    //   } else {
+    //     xhr = new ActiveXObject('Microsoft.XMLHTTP');
+    //   }
 
-      //>>step2.使用open方法设置和服务器的交互信息:
-      //设置请求的url参数,参数一是请求的类型,参数二是请求的url,参数三指定是否使用异步，默认是true
-      xhr.open(
-        'get',
-        'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxb626ae824b5621fe&secret=fbb4aab55ecc01b9fe35773502f2b26f',
-        true
-      );
-      //post请求一定要添加请求头才行不然会报错
-      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    //   //>>step2.使用open方法设置和服务器的交互信息:
+    //   //设置请求的url参数,参数一是请求的类型,参数二是请求的url,参数三指定是否使用异步，默认是true
+    //   xhr.open(
+    //     'get',
+    //     'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wxb626ae824b5621fe&secret=fbb4aab55ecc01b9fe35773502f2b26f',
+    //     true
+    //   );
+    //   //post请求一定要添加请求头才行不然会报错
+    //   xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
-      //>>step3.发送请求 GET请求不需要参数，POST请求需要把body部分以字符串或者FormData对象传进去。
-      xhr.send();
+    //   //>>step3.发送请求 GET请求不需要参数，POST请求需要把body部分以字符串或者FormData对象传进去。
+    //   xhr.send();
 
-      //>>step4.注册事件 onreadystatechange 状态改变就会调用
-      xhr.onreadystatechange = function () {
-        if (xhr.readyState === 4) {
-          // 成功完成
-          // 判断响应结果:
-          if (xhr.status === 200) {
-            // 成功，通过responseText拿到响应的文本:
-            console.log(xhr.responseText);
-          } else {
-            // 失败，根据响应码判断失败原因:
-            console.log(xhr.status);
-          }
-        } else {
-          // HTTP请求还在继续...
-        }
-      };
-    </script>
+    //   //>>step4.注册事件 onreadystatechange 状态改变就会调用
+    //   xhr.onreadystatechange = function () {
+    //     if (xhr.readyState === 4) {
+    //       // 成功完成
+    //       // 判断响应结果:
+    //       if (xhr.status === 200) {
+    //         // 成功，通过responseText拿到响应的文本:
+    //         console.log(xhr.responseText);
+    //       } else {
+    //         // 失败，根据响应码判断失败原因:
+    //         console.log(xhr.status);
+    //       }
+    //     } else {
+    //       // HTTP请求还在继续...
+    //     }
+    //   };
+    // </script>
 
-    <script>
-      wx.config({
-        debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印
-        appId: 'wxb626ae824b5621fe', // 必填，公众号的唯一标识
-        timestamp: '', // 必填，生成签名的时间戳
-        nonceStr: '', // 必填，生成签名的随机串
-        signature: '', // 必填，签名
-        jsApiList: [], // 必填，需要使用的JS接口列表
-        openTagList: [], // 可选，需要使用的开放标签列表，例如['wx-open-launch-app']
-      });
-    </script>
-    <!-- <script src="../popup.js"></script> -->
-    <script>
-      (function (para) {
-        var p = para.sdk_url,
-          n = para.name,
-          w = window,
-          d = document,
-          s = 'script',
-          x = null,
-          y = null;
-        if (typeof w['sensorsDataAnalytic201505'] !== 'undefined') {
-          return false;
-        }
-        w['sensorsDataAnalytic201505'] = n;
-        w[n] =
-          w[n] ||
-          function (a) {
-            return function () {
-              (w[n]._q = w[n]._q || []).push([a, arguments]);
-            };
-          };
-        var ifs = [
-          'track',
-          'quick',
-          'register',
-          'registerPage',
-          'registerOnce',
-          'trackSignup',
-          'trackAbtest',
-          'setProfile',
-          'setOnceProfile',
-          'appendProfile',
-          'incrementProfile',
-          'deleteProfile',
-          'unsetProfile',
-          'identify',
-          'login',
-          'logout',
-          'trackLink',
-          'clearAllRegister',
-          'getAppStatus',
-        ];
-        for (var i = 0; i < ifs.length; i++) {
-          w[n][ifs[i]] = w[n].call(null, ifs[i]);
-        }
-        if (!w[n]._t) {
-          (x = d.createElement(s)), (y = d.getElementsByTagName(s)[0]);
-          x.async = 1;
-          x.src = p;
-          x.setAttribute('charset', 'UTF-8');
-          w[n].para = para;
-          y.parentNode.insertBefore(x, y);
-        }
-      })({
-        sdk_url: './sensors.js',
-        heatmap_url:
-          'https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.14.22/heatmap.min.js',
-        name: 'sensors',
-        heatmap: {},
-        server_url:
-          'http://10.120.197.153:8106/sa?project=default&token=schemaLimited-KVeX4uIe',
-      });
+    // <script>
+    //   wx.config({
+    //     debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印
+    //     appId: 'wxb626ae824b5621fe', // 必填，公众号的唯一标识
+    //     timestamp: '', // 必填，生成签名的时间戳
+    //     nonceStr: '', // 必填，生成签名的随机串
+    //     signature: '', // 必填，签名
+    //     jsApiList: [], // 必填，需要使用的JS接口列表
+    //     openTagList: [], // 可选，需要使用的开放标签列表，例如['wx-open-launch-app']
+    //   });
+    // </script>
+    // <!-- <script src="../popup.js"></script> -->
+    // <script>
+    //   (function (para) {
+    //     var p = para.sdk_url,
+    //       n = para.name,
+    //       w = window,
+    //       d = document,
+    //       s = 'script',
+    //       x = null,
+    //       y = null;
+    //     if (typeof w['sensorsDataAnalytic201505'] !== 'undefined') {
+    //       return false;
+    //     }
+    //     w['sensorsDataAnalytic201505'] = n;
+    //     w[n] =
+    //       w[n] ||
+    //       function (a) {
+    //         return function () {
+    //           (w[n]._q = w[n]._q || []).push([a, arguments]);
+    //         };
+    //       };
+    //     var ifs = [
+    //       'track',
+    //       'quick',
+    //       'register',
+    //       'registerPage',
+    //       'registerOnce',
+    //       'trackSignup',
+    //       'trackAbtest',
+    //       'setProfile',
+    //       'setOnceProfile',
+    //       'appendProfile',
+    //       'incrementProfile',
+    //       'deleteProfile',
+    //       'unsetProfile',
+    //       'identify',
+    //       'login',
+    //       'logout',
+    //       'trackLink',
+    //       'clearAllRegister',
+    //       'getAppStatus',
+    //     ];
+    //     for (var i = 0; i < ifs.length; i++) {
+    //       w[n][ifs[i]] = w[n].call(null, ifs[i]);
+    //     }
+    //     if (!w[n]._t) {
+    //       (x = d.createElement(s)), (y = d.getElementsByTagName(s)[0]);
+    //       x.async = 1;
+    //       x.src = p;
+    //       x.setAttribute('charset', 'UTF-8');
+    //       w[n].para = para;
+    //       y.parentNode.insertBefore(x, y);
+    //     }
+    //   })({
+    //     sdk_url: './sensors.js',
+    //     heatmap_url:
+    //       'https://cdn.jsdelivr.net/npm/sa-sdk-javascript@1.14.22/heatmap.min.js',
+    //     name: 'sensors',
+    //     heatmap: {},
+    //     server_url:
+    //       'http://10.120.197.153:8106/sa?project=default&token=schemaLimited-KVeX4uIe',
+    //   });
 
       // sensors.quick('setPlugin', {
       //   popup: function (self) {
