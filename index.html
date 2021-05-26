@@ -68,7 +68,7 @@
         openTagList: [], // 可选，需要使用的开放标签列表，例如['wx-open-launch-app']
       });
     </script>
-    <script src="../popup.js"></script>
+    <!-- <script src="../popup.js"></script> -->
     <script>
       (function (para) {
         var p = para.sdk_url,
@@ -131,38 +131,38 @@
           'http://10.120.197.153:8106/sa?project=default&token=schemaLimited-KVeX4uIe',
       });
 
-      sensors.quick('setPlugin', {
-        popup: function (self) {
-          self.init({
-            show_log: true,
-            api_base_url: 'http://10.120.111.129:8202/api/v2/',
-            popup_listener: {
-              openlink: 'auto',
-              onClick: function (plan_id, action) {
-                console.log('onClick plan_id', plan_id);
-                console.log('onClick action', action);
-                alert(JSON.stringify(action));
-              },
-              onLoadSuccess: function (plan_id) {
-                console.log('onLoadSuccess', plan_id);
-              },
-              onLoadFailed: function (plan_id, code, message) {
-                console.log('onLoadFailed plan_id', plan_id);
-                console.log('onLoadFailed code', code);
-                console.log('onLoadFailed message', message);
-              },
-              onClose: function (plan_id) {
-                console.log('onClose', plan_id);
-              },
-            },
-          });
-        },
-      });
+      // sensors.quick('setPlugin', {
+      //   popup: function (self) {
+      //     self.init({
+      //       show_log: true,
+      //       api_base_url: 'http://10.120.111.129:8202/api/v2/',
+      //       popup_listener: {
+      //         openlink: 'auto',
+      //         onClick: function (plan_id, action) {
+      //           console.log('onClick plan_id', plan_id);
+      //           console.log('onClick action', action);
+      //           alert(JSON.stringify(action));
+      //         },
+      //         onLoadSuccess: function (plan_id) {
+      //           console.log('onLoadSuccess', plan_id);
+      //         },
+      //         onLoadFailed: function (plan_id, code, message) {
+      //           console.log('onLoadFailed plan_id', plan_id);
+      //           console.log('onLoadFailed code', code);
+      //           console.log('onLoadFailed message', message);
+      //         },
+      //         onClose: function (plan_id) {
+      //           console.log('onClose', plan_id);
+      //         },
+      //       },
+      //     });
+      //   },
+      // });
     </script>
   </head>
 
   <body>
-      <div class="wrapper">
+      <!-- <div class="wrapper">
     <header>
       <h1 class="title">Leedou个人博客</h1>
     </header>
@@ -207,9 +207,10 @@
     <a href="#top">Scroll to top</a>
     <a href="https://github.com/LeeDou/LeeDou.github/tarball/master" class="tar">tar</a><a href="https://github.com/LeeDou/LeeDou.github/zipball/master" class="zip">zip</a><a href="" class="code">source code</a>
     <p class="name"></p>
-  </div>
+  </div> -->
     <!-- <div>hello</div> -->
     <!-- <div style="text-align: center;">鄂ICP备20001815号-1</div> -->
+    <div> test</div>
 
     <script>
       var btn = document.getElementsByClassName('btn')[0];
