@@ -1,13 +1,3 @@
-/*
-sdk的初始化和组织
-*/
-
-/**
- * @fileoverview sensors analytic javascript sdk
- * @author shengyonggen@sensorsdata.cn
- * 神策数据 www.sensorsdata.cn ，长期招聘 前端SDK开发工程师 ，简历求发送到我邮箱，谢谢
- */
-
 (function (factory) {
   if (typeof exports === 'object' && typeof module === 'object') {
     module.exports = factory();
@@ -22,8 +12,6 @@ sdk的初始化和组织
 
     var _ = (sd._ = {});
 
-    // 压缩后的json库，照抄的github上的库
-    //使用了JSON 官网 https://www.json.org/json-zh.html  提供的 JavaScript版本。https://github.com/douglascrockford/JSON-js  用来兼容低版本IE
     if (typeof JSON !== 'object') {
       JSON = {};
     }
@@ -35,9 +23,11 @@ sdk的初始化和组织
         rx_four = /(?:^|:|,)(?:\s*\[)+/g,
         rx_escapable = /[\\\"\u0000-\u001f\u007f-\u009f\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g,
         rx_dangerous = /[\u0000\u00ad\u0600-\u0604\u070f\u17b4\u17b5\u200c-\u200f\u2028-\u202f\u2060-\u206f\ufeff\ufff0-\uffff]/g;
+
       function f(n) {
         return n < 10 ? '0' + n : n;
       }
+
       function this_value() {
         return this.valueOf();
       }
@@ -50,6 +40,7 @@ sdk的初始化和组织
         String.prototype.toJSON = this_value;
       }
       var gap, indent, meta, rep;
+
       function quote(string) {
         rx_escapable.lastIndex = 0;
         return rx_escapable.test(string)
@@ -61,6 +52,7 @@ sdk的初始化和组织
               '"'
           : '"' + string + '"';
       }
+
       function str(key, holder) {
         var i,
           k,
@@ -125,7 +117,15 @@ sdk的初始化和组织
         }
       }
       if (typeof JSON.stringify !== 'function') {
-        meta = { '\b': '\\b', '\t': '\\t', '\n': '\\n', '\f': '\\f', '\r': '\\r', '"': '\\"', '\\': '\\\\' };
+        meta = {
+          '\b': '\\b',
+          '\t': '\\t',
+          '\n': '\\n',
+          '\f': '\\f',
+          '\r': '\\r',
+          '"': '\\"',
+          '\\': '\\\\'
+        };
         JSON.stringify = function (value, replacer, space) {
           var i;
           gap = '';
@@ -141,12 +141,15 @@ sdk的初始化和组织
           if (replacer && typeof replacer !== 'function' && (typeof replacer !== 'object' || typeof replacer.length !== 'number')) {
             throw new Error('JSON.stringify');
           }
-          return str('', { '': value });
+          return str('', {
+            '': value
+          });
         };
       }
       if (typeof JSON.parse !== 'function') {
         JSON.parse = function (text, reviver) {
           var j;
+
           function walk(holder, key) {
             var k,
               v,
@@ -174,88 +177,19 @@ sdk的初始化和组织
           }
           if (rx_one.test(text.replace(rx_two, '@').replace(rx_three, ']').replace(rx_four, ''))) {
             j = eval('(' + text + ')');
-            return typeof reviver === 'function' ? walk({ '': j }, '') : j;
+            return typeof reviver === 'function'
+              ? walk(
+                  {
+                    '': j
+                  },
+                  ''
+                )
+              : j;
           }
           throw new SyntaxError('JSON.parse');
         };
       }
     })();
-
-    // https://github.com/MaxArt2501/base64-js/blob/master/base64.js
-
-    (function (root, factory) {
-      factory(root);
-    })(window, function (root) {
-      if (root.atob) {
-        // Some browsers' implementation of atob doesn't support whitespaces
-        // in the encoded string (notably, IE). This wraps the native atob
-        // in a function that strips the whitespaces.
-        // The original function can be retrieved in atob.original
-        try {
-          root.atob(' ');
-        } catch (e) {
-          root.atob = (function (atob) {
-            var func = function (string) {
-              return atob(String(string).replace(/[\t\n\f\r ]+/g, ''));
-            };
-            func.original = atob;
-            return func;
-          })(root.atob);
-        }
-        return;
-      }
-
-      // base64 character set, plus padding character (=)
-      var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=',
-        // Regular expression to check formal correctness of base64 encoded strings
-        b64re = /^(?:[A-Za-z\d+\/]{4})*?(?:[A-Za-z\d+\/]{2}(?:==)?|[A-Za-z\d+\/]{3}=?)?$/;
-
-      root.btoa = function (string) {
-        string = String(string);
-        var bitmap,
-          a,
-          b,
-          c,
-          result = '',
-          i = 0,
-          rest = string.length % 3; // To determine the final padding
-
-        for (; i < string.length; ) {
-          if ((a = string.charCodeAt(i++)) > 255 || (b = string.charCodeAt(i++)) > 255 || (c = string.charCodeAt(i++)) > 255) sd.log("Failed to execute 'btoa' on 'Window': The string to be encoded contains characters outside of the Latin1 range.");
-
-          bitmap = (a << 16) | (b << 8) | c;
-          result += b64.charAt((bitmap >> 18) & 63) + b64.charAt((bitmap >> 12) & 63) + b64.charAt((bitmap >> 6) & 63) + b64.charAt(bitmap & 63);
-        }
-
-        // If there's need of padding, replace the last 'A's with equal signs
-        return rest ? result.slice(0, rest - 3) + '==='.substring(rest) : result;
-      };
-
-      root.atob = function (string) {
-        // atob can work with strings with whitespaces, even inside the encoded part,
-        // but only \t, \n, \f, \r and ' ', which can be stripped.
-        string = String(string).replace(/[\t\n\f\r ]+/g, '');
-        if (!b64re.test(string)) sd.log("Failed to execute 'atob' on 'Window': The string to be decoded is not correctly encoded.");
-
-        // Adding the padding if missing, for semplicity
-        string += '=='.slice(2 - (string.length & 3));
-        var bitmap,
-          result = '',
-          r1,
-          r2,
-          i = 0;
-        for (; i < string.length; ) {
-          bitmap = (b64.indexOf(string.charAt(i++)) << 18) | (b64.indexOf(string.charAt(i++)) << 12) | ((r1 = b64.indexOf(string.charAt(i++))) << 6) | (r2 = b64.indexOf(string.charAt(i++)));
-
-          result += r1 === 64 ? String.fromCharCode((bitmap >> 16) & 255) : r2 === 64 ? String.fromCharCode((bitmap >> 16) & 255, (bitmap >> 8) & 255) : String.fromCharCode((bitmap >> 16) & 255, (bitmap >> 8) & 255, bitmap & 255);
-        }
-        return result;
-      };
-    });
-
-    /*
-一系列的通用的方法
-*/
 
     (function () {
       var ArrayProto = Array.prototype;
@@ -276,7 +210,7 @@ sdk的初始化和组织
         }
         if (nativeForEach && obj.forEach === nativeForEach) {
           obj.forEach(iterator, context);
-        } else if (_.isArray(obj) && obj.length === +obj.length) {
+        } else if (obj.length === +obj.length) {
           for (var i = 0, l = obj.length; i < l; i++) {
             if (i in obj && iterator.call(context, obj[i], i, obj) === breaker) {
               return false;
@@ -293,35 +227,16 @@ sdk的初始化和组织
         }
       });
 
-      _.map = function (obj, iterator) {
-        var results = [];
-        // Not using strict equality so that this acts as a
-        // shortcut to checking for `null` and `undefined`.
-        if (obj == null) {
-          return results;
-        }
-        if (Array.prototype.map && obj.map === Array.prototype.map) {
-          return obj.map(iterator);
-        }
-        each(obj, function (value, index, list) {
-          results.push(iterator(value, index, list));
-        });
-        return results;
-      };
-
-      // 普通的extend，不能到二级
       _.extend = function (obj) {
         each(slice.call(arguments, 1), function (source) {
           for (var prop in source) {
-            if (hasOwnProperty.call(source, prop) && source[prop] !== void 0) {
+            if (source[prop] !== void 0) {
               obj[prop] = source[prop];
             }
           }
         });
         return obj;
       };
-
-      // 允许二级的extend
       _.extend2Lev = function (obj) {
         each(slice.call(arguments, 1), function (source) {
           for (var prop in source) {
@@ -336,7 +251,6 @@ sdk的初始化和组织
         });
         return obj;
       };
-      // 如果已经有的属性不覆盖,如果没有的属性加进来
       _.coverExtend = function (obj) {
         each(slice.call(arguments, 1), function (source) {
           for (var prop in source) {
@@ -410,22 +324,6 @@ sdk的初始化和组织
         }
       };
 
-      _.hasAttributes = function (ele, attrs) {
-        if (typeof attrs === 'string') {
-          return _.hasAttribute(ele, attrs);
-        } else if (_.isArray(attrs)) {
-          var result = false;
-          for (var i = 0; i < attrs.length; i++) {
-            var testResult = _.hasAttribute(ele, attrs[i]);
-            if (testResult) {
-              result = true;
-              break;
-            }
-          }
-          return result;
-        }
-      };
-
       _.hasAttribute = function (ele, attr) {
         if (ele.hasAttribute) {
           return ele.hasAttribute(attr);
@@ -487,10 +385,6 @@ sdk的初始化和组织
         return obj === void 0;
       };
 
-      _.isFalsy = function (arg) {
-        return _.isUndefined(arg) || arg === '' || arg === null;
-      };
-
       _.isString = function (obj) {
         return toString.call(obj) == '[object String]';
       };
@@ -506,18 +400,6 @@ sdk的初始化和组织
       _.isNumber = function (obj) {
         return toString.call(obj) == '[object Number]' && /[\d\.]+/.test(String(obj));
       };
-
-      _.isInteger =
-        Number.isInteger ||
-        function (value) {
-          return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
-        };
-
-      _.isSafeInteger =
-        Number.isSafeInteger ||
-        function (value) {
-          return _.isInteger(value) && Math.abs(value) <= Math.pow(2, 53) - 1;
-        };
 
       _.isElement = function (obj) {
         return !!(obj && obj.nodeType === 1);
@@ -540,7 +422,6 @@ sdk的初始化和组织
         }
         return val;
       };
-      // gbk等编码decode会异常
       _.decodeURIComponent = function (val) {
         var result = val;
         try {
@@ -551,32 +432,12 @@ sdk的初始化和组织
         return result;
       };
 
-      // decodeURI 解码
-      _.decodeURI = function (val) {
-        var result = val;
-        try {
-          result = decodeURI(val);
-        } catch (e) {
-          result = val;
-        }
-        return result;
-      };
-
-      // decodeURI 解码
-      _.isDecodeURI = function (para, val) {
-        if (para) {
-          return _.decodeURI(val);
-        } else {
-          return val;
-        }
-      };
-
       _.encodeDates = function (obj) {
         _.each(obj, function (v, k) {
           if (_.isDate(v)) {
             obj[k] = _.formatDate(v);
           } else if (_.isObject(v)) {
-            obj[k] = _.encodeDates(v); // recurse
+            obj[k] = _.encodeDates(v);
           }
         });
         return obj;
@@ -586,25 +447,12 @@ sdk的初始化和组织
         return typeof window.matchMedia != 'undefined' || typeof window.msMatchMedia != 'undefined';
       };
 
-      // Returns current screen orientation type
-      // Possible values: ['未取到值', 'landscape', 'portrait']
-      // Defaults to '未取到值'.
-      // Tested on
-      // * IE 6 => '未取到值'
-      // * Opera 15 on macOS
-      // * Firefox 68 on macOS
-      // * Safari 12.1 on macOS
-      // * Chrome 75 on macOS
-      // * Safari on iPhone X
-      // * Chrome on Google Pixel 2
       _.getScreenOrientation = function () {
-        // Screen Orientation API
         var screenOrientationAPI = screen.msOrientation || screen.mozOrientation || (screen.orientation || {}).type;
         var screenOrientation = '未取到值';
         if (screenOrientationAPI) {
           screenOrientation = screenOrientationAPI.indexOf('landscape') > -1 ? 'landscape' : 'portrait';
         } else if (_.mediaQueriesSupported()) {
-          // matchMedia
           var matchMediaFunc = window.matchMedia || window.msMatchMedia;
           if (matchMediaFunc('(orientation: landscape)').matches) {
             screenOrientation = 'landscape';
@@ -678,7 +526,6 @@ sdk的初始化和组织
         return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()) + '.' + pad(d.getMilliseconds());
       };
 
-      // 把日期格式全部转化成日期字符串
       _.searchObjDate = function (o) {
         if (_.isObject(o)) {
           _.each(o, function (a, b) {
@@ -712,17 +559,15 @@ sdk的初始化和组织
         }
       };
 
-      // 把字符串格式数据限制字符串长度
-      _.formatString = function (str, maxLen) {
-        if (_.isNumber(maxLen) && str.length > maxLen) {
+      _.formatString = function (str) {
+        if (str.length > sd.para.max_string_length) {
           sd.log('字符串长度超过限制，已经做截取--' + str);
-          return str.slice(0, maxLen);
+          return str.slice(0, sd.para.max_string_length);
         } else {
           return str;
         }
       };
 
-      // 把字符串格式数据限制字符串长度
       _.searchObjString = function (o) {
         if (_.isObject(o)) {
           _.each(o, function (a, b) {
@@ -730,19 +575,13 @@ sdk的初始化和组织
               _.searchObjString(o[b]);
             } else {
               if (_.isString(a)) {
-                o[b] = _.formatString(a, b === '$element_selector' ? 1024 : sd.para.max_string_length);
+                o[b] = _.formatString(a);
               }
             }
           });
         }
       };
 
-      /**
-       * 执行属性中的函数，并且过滤掉不符合条件的属性
-       *
-       * @param {Object} obj - Properties.
-       *
-       */
       _.parseSuperProperties = function (obj) {
         if (_.isObject(obj)) {
           _.each(obj, function (value, key) {
@@ -763,10 +602,6 @@ sdk的初始化和组织
         }
       };
 
-      /**
-       * @description 过滤掉事件的属性名为保留字段的属性
-       * @param {object} obj 属性对象
-       */
       _.filterReservedProperties = function (obj) {
         var reservedFields = ['distinct_id', 'user_id', 'id', 'date', 'datetime', 'event', 'events', 'first_id', 'original_id', 'device_id', 'properties', 'second_id', 'time', 'users'];
         if (!_.isObject(obj)) {
@@ -785,7 +620,6 @@ sdk的初始化和组织
         });
       };
 
-      // 去除$option的配置数据
       _.searchConfigData = function (data) {
         if (typeof data === 'object' && data.$option) {
           var data_config = data.$option;
@@ -796,7 +630,6 @@ sdk的初始化和组织
         }
       };
 
-      // 数组去重复
       _.unique = function (ar) {
         var temp,
           n = [],
@@ -811,13 +644,11 @@ sdk的初始化和组织
         return n;
       };
 
-      // 只能是sensors满足的数据格式
       _.strip_sa_properties = function (p) {
         if (!_.isObject(p)) {
           return p;
         }
         _.each(p, function (v, k) {
-          // 如果是数组，把值自动转换成string
           if (_.isArray(v)) {
             var temp = [];
             _.each(v, function (arrv) {
@@ -834,7 +665,6 @@ sdk的初始化和组织
               sd.log('已经删除空的数组');
             }
           }
-          // 只能是字符串，数字，日期,布尔，数组
           if (!(_.isString(v) || _.isNumber(v) || _.isDate(v) || _.isBoolean(v) || _.isArray(v) || _.isFunction(v) || k === '$option')) {
             sd.log('您的数据-', k, v, '-格式不满足要求，我们已经将其删除');
             delete p[k];
@@ -843,7 +673,6 @@ sdk的初始化和组织
         return p;
       };
 
-      // 去掉undefined和null
       _.strip_empty_properties = function (p) {
         var ret = {};
         _.each(p, function (v, k) {
@@ -854,22 +683,97 @@ sdk的初始化和组织
         return ret;
       };
 
-      /**
-       * Create a base-64 encoded ASCII string from a UTF-8 string.
-       */
-      _.base64Encode = function (data) {
-        return btoa(
-          encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, function (match, p1) {
-            return String.fromCharCode('0x' + p1);
-          })
-        );
+      _.utf8Encode = function (string) {
+        string = (string + '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+
+        var utftext = '',
+          start,
+          end;
+        var stringl = 0,
+          n;
+
+        start = end = 0;
+        stringl = string.length;
+
+        for (n = 0; n < stringl; n++) {
+          var c1 = string.charCodeAt(n);
+          var enc = null;
+
+          if (c1 < 128) {
+            end++;
+          } else if (c1 > 127 && c1 < 2048) {
+            enc = String.fromCharCode((c1 >> 6) | 192, (c1 & 63) | 128);
+          } else {
+            enc = String.fromCharCode((c1 >> 12) | 224, ((c1 >> 6) & 63) | 128, (c1 & 63) | 128);
+          }
+          if (enc !== null) {
+            if (end > start) {
+              utftext += string.substring(start, end);
+            }
+            utftext += enc;
+            start = end = n + 1;
+          }
+        }
+
+        if (end > start) {
+          utftext += string.substring(start, string.length);
+        }
+
+        return utftext;
       };
 
-      _.base64Decode = function (data) {
-        var arr = _.map(atob(data).split(''), function (c) {
-          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        });
-        return decodeURIComponent(arr.join(''));
+      _.base64Encode = function (data) {
+        if (typeof btoa === 'function') {
+          return btoa(
+            encodeURIComponent(data).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+              return String.fromCharCode('0x' + p1);
+            })
+          );
+        }
+        data = String(data);
+        var b64 = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+        var o1,
+          o2,
+          o3,
+          h1,
+          h2,
+          h3,
+          h4,
+          bits,
+          i = 0,
+          ac = 0,
+          enc = '',
+          tmp_arr = [];
+        if (!data) {
+          return data;
+        }
+        data = _.utf8Encode(data);
+        do {
+          o1 = data.charCodeAt(i++);
+          o2 = data.charCodeAt(i++);
+          o3 = data.charCodeAt(i++);
+
+          bits = (o1 << 16) | (o2 << 8) | o3;
+
+          h1 = (bits >> 18) & 0x3f;
+          h2 = (bits >> 12) & 0x3f;
+          h3 = (bits >> 6) & 0x3f;
+          h4 = bits & 0x3f;
+          tmp_arr[ac++] = b64.charAt(h1) + b64.charAt(h2) + b64.charAt(h3) + b64.charAt(h4);
+        } while (i < data.length);
+
+        enc = tmp_arr.join('');
+
+        switch (data.length % 3) {
+          case 1:
+            enc = enc.slice(0, -2) + '==';
+            break;
+          case 2:
+            enc = enc.slice(0, -1) + '=';
+            break;
+        }
+
+        return enc;
       };
 
       _.UUID = (function () {
@@ -917,7 +821,6 @@ sdk的初始化和组织
         };
 
         return function () {
-          // 有些浏览器取个屏幕宽度都异常...
           var se = String(screen.height * screen.width);
           if (se && /\d{5,}/.test(se)) {
             se = se.toString(16);
@@ -1021,7 +924,7 @@ sdk的初始化和组织
           this._initValues();
           var b = this._regex.exec(a);
           if (!b) {
-            sd.log('DPURLParser::_parse -> Invalid URL');
+            throw 'DPURLParser::_parse -> Invalid URL';
           }
           for (var c in this._fields) {
             if (typeof b[this._fields[c]] != 'undefined') {
@@ -1033,138 +936,6 @@ sdk的初始化和组织
         };
         return new URLParser(para);
       };
-
-      /* ulr预置
-_.referringDomain = function(referrer) {
-  var split = referrer.split('/');
-  if (split.length >= 3) {
-    return split[2];
-  }
-  return '';
-};
-
-_.getDomainByHost = function(url) {
-  if (typeof url === 'string' && url.split('.').length >= 2) {
-    var temp = url.match(/[^\.]+\.[^.]+$/);
-    if (temp && temp[0]) {
-      return temp[0];
-    } else {
-      return '';
-    }
-  } else {
-    return '';
-  }
-}
-*/
-
-      /* _.draggable = function(elementToDrag, event) {
-  function getScrollOffsets() {
-    var w = document;
-    if (w.pageXOffset != null) {
-      return {
-        x: w.pageXOffset,
-        y: w.pageYOffset
-      };
-    } else {
-      return {
-        x: w.documentElement.scrollLeft,
-        y: w.documentElement.scrollTop
-      };
-    }
-  }
-
-  var scroll = getScrollOffsets();
-  var startX = event.clientX + scroll.x;
-  var startY = event.clientY + scroll.y;
-  var origX = elementToDrag.offsetLeft;
-  var origY = elementToDrag.offsetTop;
-  var deltaX = startX - origX;
-  var deltaY = startY - origY;
-  if (document.addEventListener) {
-    document.addEventListener("mousemove", moveHandler);
-    document.addEventListener("mouseup", upHandler);
-  } else if (document.attachEvent) {
-    document.attachEvent("onmousemove", moveHandler);
-    document.attachEvent("onmouseup", upHandler);
-  }
-  if (event.stopPropagation) event.stopPropagation();
-  else event.cancelBubble = true;
-  if (event.preventDefault) event.preventDefault();
-  else event.returnValue = false;
-
-  elementToDrag.style.bottom = 'auto';
-
-  function moveHandler(e) {
-    e = e || window.event;
-    var scroll = getScrollOffsets();
-    elementToDrag.style.left = (e.clientX + scroll.x - deltaX) + "px";
-    elementToDrag.style.top = (e.clientY + scroll.y - deltaY) + "px";
-    if (e.stopPropagation) e.stopPropagation();
-    else e.cancelBubble = true;
-  }
-  function upHandler(e) {
-    if (!e) e = window.event;
-    if (document.removeEventListener) {
-      document.removeEventListener("mouseup", upHandler);
-      document.removeEventListener("mousemove", moveHandler);
-    } else if (document.detachEvent) {
-      document.detachEvent("onmouseup", upHandler);
-      document.detachEvent("onmousemove", moveHandler);
-    }
-    if (e.stopPropagation) e.stopPropagation();
-    else e.cancelBubble = true;
-  }
-} */
-
-      // 是否有标准的浏览器环境,如果不是发送$errorEnviroment:{$errorReson:'没有window'}
-      /* _.hasStandardBrowserEnviroment = function() {
-  if (!window) {
-    return 'window';
-  }
-  if (!document) {
-    return 'document';
-  }
-  if (!navigator) {
-    return 'navigator';
-  }
-  if (!screen) {
-    return 'screen';
-  }
-
-}; */
-
-      /* _.bindReady = function(fn,win) {
-  win = win || window;
-  var done = false,
-  top = true,
-  doc = win.document,
-  root = doc.documentElement,
-  modern = doc.addEventListener,
-  add = modern ? 'addEventListener' : 'attachEvent',
-  rem = modern ? 'removeEventListener' : 'detachEvent',
-  pre = modern ? '' : 'on',
-  init = function(e) {
-    if (e.type == 'readystatechange' && doc.readyState != 'complete') return;
-    (e.type == 'load' ? win : doc)[rem](pre + e.type, init, false);
-    if (!done && (done = true)) fn.call(win, e.type || e);
-  },
-  poll = function() {
-    try { root.doScroll('left'); } catch(e) { setTimeout(poll, 50); return; }
-    init('poll');
-  };
-
-  if (doc.readyState == 'complete') fn.call(win, 'lazy');
-  else {
-    if (!modern && root.doScroll) {
-      try { top = !win.frameElement; } catch(e) { }
-      if (top) poll();
-    }
-    doc[add](pre + 'DOMContentLoaded', init, false);
-    doc[add](pre + 'readystatechange', init, false);
-    win[add](pre + 'load', init, false);
-  }
-
-}; */
 
       _.addEvent = function () {
         function fixEvent(event) {
@@ -1204,9 +975,6 @@ _.getDomainByHost = function(url) {
 
         var register_event = function (element, type, handler) {
           var useCapture = _.isObject(sd.para.heatmap) && sd.para.heatmap.useCapture ? true : false;
-          if (_.isObject(sd.para.heatmap) && typeof sd.para.heatmap.useCapture === 'undefined' && type === 'click') {
-            useCapture = true;
-          }
           if (element && element.addEventListener) {
             element.addEventListener(
               type,
@@ -1222,6 +990,7 @@ _.getDomainByHost = function(url) {
             element[ontype] = makeHandler(element, handler, old_handler);
           }
         };
+
         function makeHandler(element, new_handler, old_handlers) {
           var handler = function (event) {
             event = event || fixEvent(window.event);
@@ -1257,7 +1026,6 @@ _.getDomainByHost = function(url) {
         var historyPushState = window.history.pushState;
         var historyReplaceState = window.history.replaceState;
 
-        //调用方法导致的url切换
         window.history.pushState = function () {
           historyPushState.apply(window.history, arguments);
           callback(current_url);
@@ -1269,7 +1037,6 @@ _.getDomainByHost = function(url) {
           current_url = location.href;
         };
 
-        // 前进后退导致的url切换
         var singlePageEvent = historyPushState ? 'popstate' : 'hashchange';
         _.addEvent(window, singlePageEvent, function () {
           callback(current_url);
@@ -1307,12 +1074,8 @@ _.getDomainByHost = function(url) {
             cdomain = domain ? '; domain=' + domain : '';
           }
 
-          // 0 session
-          // -1 马上过期
-          //
           if (days !== 0) {
             var date = new Date();
-            // 默认是天，可以是秒
             if (String(days).slice(-1) === 's') {
               date.setTime(date.getTime() + Number(String(days).slice(0, -1)) * 1000);
             } else {
@@ -1333,21 +1096,7 @@ _.getDomainByHost = function(url) {
           cross_subdomain = typeof cross_subdomain === 'undefined' ? sd.para.cross_subdomain : cross_subdomain;
           _.cookie.set(name, '', -1, cross_subdomain);
         },
-        encrypt: function (v) {
-          return 'data:enc;' + _.rot13obfs(v);
-        },
-        decrypt: function (v) {
-          v = v.substring('data:enc;'.length);
-          v = _.rot13defs(v);
-          return v;
-        },
-        resolveValue: function (cross) {
-          var flag = 'data:enc;';
-          if (_.isString(cross) && cross.indexOf(flag) === 0) {
-            cross = _.cookie.decrypt(cross);
-          }
-          return cross;
-        },
+
         getCookieName: function (name_prefix, url) {
           var sub = '';
           url = url || location.href;
@@ -1367,7 +1116,6 @@ _.getDomainByHost = function(url) {
           }
           return sub;
         },
-        // 针对新用户的兼容性判断,兼容子域名
         getNewUser: function () {
           var prefix = 'new_user';
           if (this.get('sensorsdata_is_new_user') !== null || this.get(this.getCookieName(prefix)) !== null) {
@@ -1377,33 +1125,7 @@ _.getDomainByHost = function(url) {
           }
         }
       };
-      _.getElementContent = function (target, tagName) {
-        var textContent = '';
-        var element_content = '';
-        if (target.textContent) {
-          textContent = _.trim(target.textContent);
-        } else if (target.innerText) {
-          textContent = _.trim(target.innerText);
-        }
-        if (textContent) {
-          textContent = textContent
-            .replace(/[\r\n]/g, ' ')
-            .replace(/[ ]+/g, ' ')
-            .substring(0, 255);
-        }
-        element_content = textContent || '';
 
-        // 针对inut默认只采集button和submit非名感的词汇。可以自定义（银联提）
-        if (tagName === 'input' || tagName === 'INPUT') {
-          if (target.type === 'button' || target.type === 'submit') {
-            element_content = target.value || '';
-          } else if (sd.para.heatmap && typeof sd.para.heatmap.collect_input === 'function' && sd.para.heatmap.collect_input(target)) {
-            element_content = target.value || '';
-          }
-        }
-        return element_content;
-      };
-      // 获取元素的一些信息
       _.getEleInfo = function (obj) {
         if (!obj.target) {
           return false;
@@ -1419,18 +1141,39 @@ _.getDomainByHost = function(url) {
         props.$element_id = target.getAttribute('id');
         props.$element_class_name = typeof target.className === 'string' ? target.className : null;
         props.$element_target_url = target.getAttribute('href');
-        props.$element_content = _.getElementContent(target, tagName);
+
+        var textContent = '';
+        if (target.textContent) {
+          textContent = _.trim(target.textContent);
+        } else if (target.innerText) {
+          textContent = _.trim(target.innerText);
+        }
+        if (textContent) {
+          textContent = textContent
+            .replace(/[\r\n]/g, ' ')
+            .replace(/[ ]+/g, ' ')
+            .substring(0, 255);
+        }
+        props.$element_content = textContent || '';
+
+        if (tagName === 'input') {
+          if (target.type === 'button' || target.type === 'submit') {
+            props.$element_content = target.value || '';
+          } else if (sd.para.heatmap && typeof sd.para.heatmap.collect_input === 'function' && sd.para.heatmap.collect_input(target)) {
+            props.$element_content = target.value || '';
+          }
+        }
 
         props = _.strip_empty_properties(props);
 
-        (props.$url = _.isDecodeURI(sd.para.url_is_decode, location.href)), (props.$url_path = location.pathname);
+        props.$url = location.href;
+        props.$url_path = location.pathname;
         props.$title = document.title;
         props.$viewport_width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth || 0;
 
         return props;
       };
 
-      // _.localStorage
       _.localStorage = {
         get: function (name) {
           return window.localStorage.getItem(name);
@@ -1492,20 +1235,15 @@ _.getDomainByHost = function(url) {
         }
       };
 
-      // 检测是否支持跨域的ajax发送
       _.isSupportCors = function () {
         if (typeof window.XMLHttpRequest === 'undefined') {
           return false;
         }
-        //Detect browser support for CORS
         if ('withCredentials' in new XMLHttpRequest()) {
-          /* supports cross-domain requests */
           return true;
         } else if (typeof XDomainRequest !== 'undefined') {
-          //Use IE-specific "CORS" code with XDR
           return true;
         } else {
-          //Time to retreat with a fallback or polyfill
           return false;
         }
       };
@@ -1541,6 +1279,7 @@ _.getDomainByHost = function(url) {
         para.timeout = para.timeout || 20000;
 
         para.credentials = typeof para.credentials === 'undefined' ? true : para.credentials;
+
         function getJSON(data) {
           if (!data) {
             return '';
@@ -1569,67 +1308,24 @@ _.getDomainByHost = function(url) {
           para
         );
 
-        //校验url与location.href协议是否一致
-        sd.debug.protocol.ajax(para.url);
-
-        var oldsuccess = para.success;
-        var olderror = para.error;
-        var errorTimer;
-
-        function abort() {
-          try {
-            if (_.isObject(g) && g.abort) {
+        try {
+          if (typeof g === 'object' && 'timeout' in g) {
+            g.timeout = para.timeout;
+          } else {
+            setTimeout(function () {
               g.abort();
-            }
-          } catch (error) {
-            sd.log(error);
+            }, para.timeout + 500);
           }
-
-          //如果 g.abort 未生效，手动执行 error
-          if (errorTimer) {
-            clearTimeout(errorTimer);
-            errorTimer = null;
-            para.error && para.error();
-            g.onreadystatechange = null;
-            g.onload = null;
-            g.onerror = null;
+        } catch (e) {
+          try {
+            setTimeout(function () {
+              g.abort();
+            }, para.timeout + 500);
+          } catch (e2) {
+            sd.log(e2);
           }
         }
 
-        para.success = function (data) {
-          oldsuccess(data);
-          if (errorTimer) {
-            clearTimeout(errorTimer);
-            errorTimer = null;
-          }
-        };
-        para.error = function (err) {
-          olderror(err);
-          if (errorTimer) {
-            clearTimeout(errorTimer);
-            errorTimer = null;
-          }
-        };
-        errorTimer = setTimeout(function () {
-          abort();
-        }, para.timeout);
-
-        if (typeof XDomainRequest !== 'undefined' && g instanceof XDomainRequest) {
-          //XDomainRequest success callback
-          g.onload = function () {
-            para.success && para.success(getJSON(g.responseText));
-            g.onreadystatechange = null;
-            g.onload = null;
-            g.onerror = null;
-          };
-          //XDomainRequest error callback
-          g.onerror = function () {
-            para.error && para.error(getJSON(g.responseText), g.status);
-            g.onreadystatechange = null;
-            g.onerror = null;
-            g.onload = null;
-          };
-        }
         g.onreadystatechange = function () {
           try {
             if (g.readyState == 4) {
@@ -1654,20 +1350,19 @@ _.getDomainByHost = function(url) {
             g.withCredentials = true;
           }
           if (_.isObject(para.header)) {
-            _.each(para.header, function (v, i) {
-              g.setRequestHeader && g.setRequestHeader(i, v);
-            });
+            for (var i in para.header) {
+              g.setRequestHeader(i, para.header[i]);
+            }
           }
 
           if (para.data) {
             if (!para.cors) {
-              //XDomainRequest no custom headers may be aadded to the request
-              g.setRequestHeader && g.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+              g.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
             }
             if (para.contentType === 'application/json') {
-              g.setRequestHeader && g.setRequestHeader('Content-type', 'application/json; charset=UTF-8');
+              g.setRequestHeader('Content-type', 'application/json; charset=UTF-8');
             } else {
-              g.setRequestHeader && g.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+              g.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
             }
           }
         } catch (e) {
@@ -1712,7 +1407,6 @@ _.getDomainByHost = function(url) {
           para.error();
           g.onerror = null;
         };
-        // if iframe
         para.appendCall(g);
       };
 
@@ -1724,7 +1418,7 @@ _.getDomainByHost = function(url) {
         try {
           hostname = _.URL(url).hostname;
         } catch (e) {
-          sd.log('getHostname传入的url参数不合法！');
+          sd.log(e);
         }
         return hostname || defaultValue;
       };
@@ -1739,53 +1433,29 @@ _.getDomainByHost = function(url) {
         return result;
       };
 
-      /**
-       * 查询得到URL参数
-       * @param {string} queryString - 以问号开头的 query string
-       * @return {Object} 一个含有参数列表的key/value对象
-       *
-       * @example
-       * var url = _.getURLSearchParams('?project=testproject&query1=test&silly=willy&field[0]=zero&field[2]=two#test=hash&chucky=cheese');
-       *
-       * url.project; // => testproject
-       */
       _.getURLSearchParams = function (queryString) {
         queryString = queryString || '';
         var decodeParam = function (str) {
           return decodeURIComponent(str);
         };
-        var args = {}; // Start with an empty object
-        var query = queryString.substring(1); // Get query string, minus '?'
-        var pairs = query.split('&'); // Split at ampersands
+        var args = {};
+        var query = queryString.substring(1);
+        var pairs = query.split('&');
         for (var i = 0; i < pairs.length; i++) {
-          // For each fragment
-          var pos = pairs[i].indexOf('='); // Look for "name=value"
-          if (pos === -1) continue; // If not found, skip it
-          var name = pairs[i].substring(0, pos); // Extract the name
-          var value = pairs[i].substring(pos + 1); // Extract the value
-          name = decodeParam(name); // Decode the name
-          value = decodeParam(value); // Decode the value
-          args[name] = value; // Store as a property
+          var pos = pairs[i].indexOf('=');
+          if (pos === -1) continue;
+          var name = pairs[i].substring(0, pos);
+          var value = pairs[i].substring(pos + 1);
+          name = decodeParam(name);
+          value = decodeParam(value);
+          args[name] = value;
         }
-        return args; // Return the parsed arguments
+        return args;
       };
 
-      /**
-       * 解析URL
-       * @param {string} url
-       * @return {Object} 一个 URL 对象或者普通JS对象
-       *
-       * @example
-       * var url = _.URL('http://www.domain.com:8080/path/index.html?project=testproject&query1=test&silly=willy&field[0]=zero&field[2]=two#test=hash&chucky=cheese');
-       *
-       * url.hostname; // => www.domain.com
-       * url.searchParams.get('project'); // => testproject
-       */
       _.URL = function (url) {
         var result = {};
         var basicProps = ['hash', 'host', 'hostname', 'href', 'origin', 'password', 'pathname', 'port', 'protocol', 'search', 'username'];
-        // Some browsers allow objects to be created via URL constructor, but instances do not have the expected url properties.
-        // See https://www.caniuse.com/#feat=url
         var isURLAPIWorking = function () {
           var url;
           try {
@@ -1810,7 +1480,7 @@ _.getDomainByHost = function(url) {
         } else {
           var _regex = /^https?:\/\/.+/;
           if (_regex.test(url) === false) {
-            sd.log('Invalid URL');
+            throw 'Invalid URL';
           }
           var link = document.createElement('a');
           link.href = url;
@@ -1867,11 +1537,6 @@ _.getDomainByHost = function(url) {
 
       _.getCookieTopLevelDomain = function (hostname) {
         hostname = hostname || window.location.hostname;
-        /*
-  if (hostname === 'localhost') {
-    return hostname;
-  }
-  */
         var splitResult = hostname.split('.');
         if (_.isArray(splitResult) && splitResult.length >= 2 && !/^(\d+\.)+\d+$/.test(hostname)) {
           var domainStr = '.' + splitResult.splice(splitResult.length - 1, 1);
@@ -1956,13 +1621,22 @@ _.getDomainByHost = function(url) {
         },
         getSize: function () {
           if (!window.getComputedStyle) {
-            return { width: this.ele.offsetWidth, height: this.ele.offsetHeight };
+            return {
+              width: this.ele.offsetWidth,
+              height: this.ele.offsetHeight
+            };
           }
           try {
             var bounds = this.ele.getBoundingClientRect();
-            return { width: bounds.width, height: bounds.height };
+            return {
+              width: bounds.width,
+              height: bounds.height
+            };
           } catch (e) {
-            return { width: 0, height: 0 };
+            return {
+              width: 0,
+              height: 0
+            };
           }
         },
         getStyle: function (value) {
@@ -2018,34 +1692,6 @@ _.getDomainByHost = function(url) {
           var parent = this.ele.parentNode;
           parent = parent && parent.nodeType !== 11 ? parent : null;
           return _.ry(parent);
-        },
-        // 兼容不原生支持 previousElementSibling 的旧版浏览器
-        previousElementSibling: function () {
-          var el = this.ele;
-          if ('previousElementSibling' in document.documentElement) {
-            return _.ry(el.previousElementSibling);
-          } else {
-            while ((el = el.previousSibling)) {
-              if (el.nodeType === 1) {
-                return _.ry(el);
-              }
-            }
-            return _.ry(null);
-          }
-        },
-        // 得到和当前元素相同类型的同级元素
-        getSameTypeSiblings: function () {
-          var element = this.ele;
-          var parentNode = element.parentNode;
-          var tagName = element.tagName.toLowerCase();
-          var arr = [];
-          for (var i = 0; i < parentNode.children.length; i++) {
-            var child = parentNode.children[i];
-            if (child.nodeType === 1 && child.tagName.toLowerCase() === tagName) {
-              arr.push(parentNode.children[i]);
-            }
-          }
-          return arr;
         }
       };
 
@@ -2060,33 +1706,6 @@ _.getDomainByHost = function(url) {
         }
         return nstr;
       };
-
-      /* _.querySelectorAll = function(val){
-
-  if(typeof val !== 'string'){
-    sd.log('选择器错误',val);
-    return [];
-  }
-  // 替换纯数字的id
-  var sp = val.split(' ');
-  if(sp.length === 1){
-    if(/^#\d+/.test(sp[0])){
-      val = '#' + _.strToUnicode(sp[0].slice(1));
-    }
-  }else{
-    if(/^#\d+/.test(sp[0])){
-      sp[0] = '#' + _.strToUnicode(sp[0].slice(1));
-      val = sp.join(' ');
-    }
-  }
-
-  try{
-     return document.querySelectorAll(val);
-  }catch(e){
-    sd.log('错误',val);
-    return [];
-  }
-}; */
 
       _.getReferrer = function (referrer) {
         var referrer = referrer || document.referrer;
@@ -2139,30 +1758,6 @@ _.getDomainByHost = function(url) {
         } else {
           return '取值异常_referrer异常_' + String(referrerUrl);
         }
-      };
-
-      _.getWxAdIdFromUrl = function (url) {
-        var click_id = _.getQueryParam(url, 'gdt_vid');
-        var hash_key = _.getQueryParam(url, 'hash_key');
-        var callbacks = _.getQueryParam(url, 'callbacks');
-        var obj = {
-          click_id: '',
-          hash_key: '',
-          callbacks: ''
-        };
-        if (_.isString(click_id) && click_id.length) {
-          obj.click_id = click_id.length == 16 || click_id.length == 18 ? click_id : '参数解析不合法';
-
-          //click_id 解析成功的情况下才会解析hashkey和callbacks
-          if (_.isString(hash_key) && hash_key.length) {
-            obj.hash_key = hash_key;
-          }
-          if (_.isString(callbacks) && callbacks.length) {
-            obj.callbacks = callbacks;
-          }
-        }
-
-        return obj;
       };
 
       _.getReferSearchEngine = function (referrerUrl) {
@@ -2230,8 +1825,6 @@ _.getDomainByHost = function(url) {
           var url = location.href;
           var url_domain = _.getCurrentDomain(url);
           if (!url_domain) {
-            // TODO
-            //_.jssdkDebug('url_domain异常_'+ url + '_' + url_domain);
             sd.debug.jssdkDebug('url_domain异常_' + url + '_' + url_domain);
           }
 
@@ -2243,7 +1836,6 @@ _.getDomainByHost = function(url) {
             url_domain: url_domain
           };
         },
-        //当前页面的一些属性，在store初始化是生成
         pageProp: {},
 
         campaignParams: function () {
@@ -2269,40 +1861,34 @@ _.getDomainByHost = function(url) {
           var utms = _.info.campaignParams();
           var $utms = {},
             otherUtms = {};
-          _.each(utms, function (v, i, utms) {
+          for (var i in utms) {
             if ((' ' + sd.source_channel_standard + ' ').indexOf(' ' + i + ' ') !== -1) {
               $utms[prefix + i] = utms[i];
             } else {
               otherUtms[prefix_add + i] = utms[i];
             }
-          });
+          }
           return {
             $utms: $utms,
             otherUtms: otherUtms
           };
         },
-        // 预置属性
         properties: function () {
           return {
-            $timezone_offset: new Date().getTimezoneOffset(),
             $screen_height: Number(screen.height) || 0,
             $screen_width: Number(screen.width) || 0,
-            // 我说两遍写的重复，佳捷说就写两遍
             $lib: 'js',
             $lib_version: String(sd.lib_version)
           };
         },
-        // 保存临时的一些变量，只针对当前页面有效
         currentProps: {},
         register: function (obj) {
           _.extend(_.info.currentProps, obj);
         }
       };
 
-      // 发送队列
       _.autoExeQueue = function () {
         var queue = {
-          // 简单队列
           items: [],
           enqueue: function (val) {
             this.items.push(val);
@@ -2314,7 +1900,6 @@ _.getDomainByHost = function(url) {
           getCurrentItem: function () {
             return this.items[0];
           },
-          // 自动循环执行队列
           isRun: false,
           start: function () {
             if (this.items.length > 0 && !this.isRun) {
@@ -2349,23 +1934,24 @@ _.getDomainByHost = function(url) {
         if (!link || typeof link !== 'object') {
           return false;
         }
-        // 如果是非当前页面会跳转的链接，直接track
         if (!link.href || /^javascript/.test(link.href) || link.target || link.download || link.onclick) {
           sd.track(event_name, event_prop);
           return false;
         }
+
         function linkFunc(e) {
           e.stopPropagation();
-          e.preventDefault(); // 阻止默认跳转
+          e.preventDefault();
           var hasCalled = false;
+
           function track_a_click() {
             if (!hasCalled) {
               hasCalled = true;
-              location.href = link.href; //把 A 链接的点击跳转,改成 location 的方式跳转
+              location.href = link.href;
             }
           }
-          setTimeout(track_a_click, 1000); //如果没有回调成功，设置超时回调
-          sd.track(event_name, event_prop, track_a_click); //把跳转操作加在callback里
+          setTimeout(track_a_click, 1000);
+          sd.track(event_name, event_prop, track_a_click);
         }
         if (obj.event) {
           linkFunc(obj.event);
@@ -2428,285 +2014,7 @@ _.getDomainByHost = function(url) {
           this.pendingEvents = [];
         }
       };
-
-      /**
-       * Obfuscate a plaintext string with a simple rotation algorithm similar to
-       * the rot13 cipher.
-       */
-      _.rot13obfs = function (str, key) {
-        str = String(str);
-        key = typeof key === 'number' ? key : 13;
-        var n = 126;
-
-        var chars = str.split('');
-
-        for (var i = 0, len = chars.length; i < len; i++) {
-          var c = chars[i].charCodeAt(0);
-
-          if (c < n) {
-            chars[i] = String.fromCharCode((chars[i].charCodeAt(0) + key) % n);
-          }
-        }
-
-        return chars.join('');
-      };
-
-      /**
-       * De-obfuscate an obfuscated string with the method above.
-       */
-      _.rot13defs = function (str) {
-        var key = 13,
-          n = 126,
-          str = String(str);
-
-        return _.rot13obfs(str, n - key);
-      };
-
-      _.urlSafeBase64 = (function () {
-        var ENC = {
-          '+': '-',
-          '/': '_',
-          '=': '.'
-        };
-        var DEC = {
-          '-': '+',
-          _: '/',
-          '.': '='
-        };
-
-        /**
-         * encode base64 string url safe
-         * @param {String} base64 - base64 encoded string
-         * @return {String} url-safe-base64 encoded
-         */
-        var encode = function (base64) {
-          return base64.replace(/[+/=]/g, function (m) {
-            return ENC[m];
-          });
-        };
-
-        /**
-         * decode url-safe-base64 string to base64
-         * @param {String} safe - url-safe-base64 string
-         * @return {String} base64 encoded
-         */
-        var decode = function (safe) {
-          return safe.replace(/[-_.]/g, function (m) {
-            return DEC[m];
-          });
-        };
-
-        /**
-         * trim padding - `window.atob` might handle trimmed strings, e.g. in Chrome@57, Firefox@52
-         * @param {String} string - base64 or url-safe-base64 string
-         * @return {String} string with padding chars removed
-         */
-        var trim = function (string) {
-          return string.replace(/[.=]{1,2}$/, '');
-        };
-
-        /**
-         * checks if `string` is base64 encoded
-         * @param {String} string
-         * @return {Boolean} true if base64 encoded
-         */
-        var isBase64 = function (string) {
-          return /^[A-Za-z0-9+/]*[=]{0,2}$/.test(string);
-        };
-
-        /**
-         * checks if `string` is url-safe-base64 encoded
-         * @param {String} string
-         * @return {Boolean} true if url-safe-base64 encoded
-         */
-        var isUrlSafeBase64 = function (string) {
-          return /^[A-Za-z0-9_-]*[.]{0,2}$/.test(string);
-        };
-
-        return {
-          encode: encode,
-          decode: decode,
-          trim: trim,
-          isBase64: isBase64,
-          isUrlSafeBase64: isUrlSafeBase64
-        };
-      })();
-
-      _.setCssStyle = function (css) {
-        var style = document.createElement('style');
-        style.type = 'text/css';
-        try {
-          style.appendChild(document.createTextNode(css));
-        } catch (e) {
-          style.styleSheet.cssText = css;
-        }
-        var head = document.getElementsByTagName('head')[0];
-        var firstScript = document.getElementsByTagName('script')[0];
-        if (head) {
-          if (head.children.length) {
-            head.insertBefore(style, head.children[0]);
-          } else {
-            head.appendChild(style);
-          }
-        } else {
-          firstScript.parentNode.insertBefore(style, firstScript);
-        }
-      };
-
-      _.isIOS = function () {
-        return !!navigator.userAgent.match(/iPhone|iPad|iPod/i);
-      };
-
-      _.getIOSVersion = function () {
-        try {
-          var version = navigator.appVersion.match(/OS (\d+)[._](\d+)[._]?(\d+)?/);
-          return version && version[1] ? Number.parseInt(version[1], 10) : '';
-        } catch (e) {
-          return '';
-        }
-      };
-
-      _.getUA = function () {
-        var Sys = {};
-        var ua = navigator.userAgent.toLowerCase();
-        var s;
-        if ((s = ua.match(/opera.([\d.]+)/))) {
-          Sys.opera = Number(s[1].split('.')[0]);
-        } else if ((s = ua.match(/msie ([\d.]+)/))) {
-          Sys.ie = Number(s[1].split('.')[0]);
-        } else if ((s = ua.match(/edge.([\d.]+)/))) {
-          Sys.edge = Number(s[1].split('.')[0]);
-        } else if ((s = ua.match(/firefox\/([\d.]+)/))) {
-          Sys.firefox = Number(s[1].split('.')[0]);
-        } else if ((s = ua.match(/chrome\/([\d.]+)/))) {
-          Sys.chrome = Number(s[1].split('.')[0]);
-        } else if ((s = ua.match(/version\/([\d.]+).*safari/))) {
-          Sys.safari = Number(s[1].match(/^\d*.\d*/));
-        }
-        return Sys;
-      };
-
-      /**
-       * @param {object} obj
-       * _.jsonp({
-       *   url:'',
-       *   callbackName:'',
-       *   data:{}, //服务端需要的其他参数，拼接在url后
-       *   success:function(data){},
-       *   error:function(){},
-       *   timeout:3000
-       * });
-       */
-      _.jsonp = function (obj) {
-        if (!(_.isObject(obj) && _.isString(obj.callbackName))) {
-          sd.log('JSONP 请求缺少 callbackName');
-          return false;
-        }
-        obj.success = _.isFunction(obj.success) ? obj.success : function () {};
-        obj.error = _.isFunction(obj.error) ? obj.error : function () {};
-        obj.data = obj.data || '';
-        var script = document.createElement('script');
-        var head = document.getElementsByTagName('head')[0];
-        var timer = null;
-        head.appendChild(script);
-        if (_.isNumber(obj.timeout)) {
-          timer = setTimeout(function () {
-            obj.error('timeout');
-            window[obj.callbackName] = function () {
-              sd.log('call jsonp error');
-            };
-            timer = null;
-            head.removeChild(script);
-          }, obj.timeout);
-        }
-        window[obj.callbackName] = function (data) {
-          obj.success(data);
-          window[obj.callbackName] = function () {
-            sd.log('call jsonp error');
-          };
-          clearTimeout(timer);
-          timer = null;
-          head.removeChild(script);
-        };
-        if (obj.url.indexOf('?') > -1) {
-          obj.url += '&callbackName=' + obj.callbackName;
-        } else {
-          obj.url += '?callbackName=' + obj.callbackName;
-        }
-        if (_.isObject(obj.data)) {
-          var arr = [];
-          _.each(obj.data, function (value, key) {
-            arr.push(key + '=' + value);
-          });
-          obj.data = arr.join('&');
-          obj.url += '&' + obj.data;
-        }
-        script.onerror = function (err) {
-          window[obj.callbackName] = function () {
-            sd.log('call jsonp error');
-          };
-          clearTimeout(timer);
-          timer = null;
-          head.removeChild(script);
-          obj.error(err);
-        };
-        script.src = obj.url;
-      };
-
-      _.isSupportBeaconSend = function () {
-        var Sys = _.getUA();
-        var supported = false;
-        var ua = navigator.userAgent.toLowerCase();
-        //sendBeacon 浏览器兼容性判断
-        if (/Android|webOS|iPhone|iPad|iPod|BlackBerry/i.test(navigator.userAgent)) {
-          //iOS 上的 Safari11.1–12 无法向未访问的来源发送信号，已在iOS13中修复。
-          var reg = /os [\d._]*/gi;
-          var verinfo = ua.match(reg);
-          var version = (verinfo + '').replace(/[^0-9|_.]/gi, '').replace(/_/gi, '.');
-          var ver = version.split('.');
-          if (typeof Sys.safari === 'undefined') {
-            Sys.safari = ver[0];
-          }
-          if (ver[0] && ver[0] < 13) {
-            if (Sys.chrome > 41 || Sys.firefox > 30 || Sys.opera > 25 || Sys.safari > 12) {
-              supported = true;
-            }
-          } else if (Sys.chrome > 41 || Sys.firefox > 30 || Sys.opera > 25 || Sys.safari > 11.3) {
-            supported = true;
-          }
-        } else {
-          if (Sys.chrome > 38 || Sys.edge > 13 || Sys.firefox > 30 || Sys.opera > 25 || Sys.safari > 11.0) {
-            supported = true;
-          }
-        }
-        return supported;
-      };
-
-      _.check = {
-        // 检查关键字
-        checkKeyword: function (para) {
-          var reg = /^((?!^distinct_id$|^original_id$|^device_id$|^time$|^properties$|^id$|^first_id$|^second_id$|^users$|^events$|^event$|^user_id$|^date$|^datetime$|^user_group|^user_tag)[a-zA-Z_$][a-zA-Z\d_$]{0,99})$/i;
-          if (!_.isString(para) || !reg.test(para)) {
-            return false;
-          }
-          return true;
-        },
-
-        // 检查 id 字符串长度
-        checkIdLength: function (str) {
-          var temp = String(str);
-          if (temp.length > 255) {
-            //sd.log('id 长度超过 255 个字符！')
-            return false;
-          }
-          return true;
-        }
-      };
     })();
-
-    /*
-sd的各个方法，包含sdk的一些基本功能
-*/
 
     sd.para_default = {
       preset_properties: {
@@ -2716,37 +2024,27 @@ sd的各个方法，包含sdk的一些基本功能
         latest_referrer: true,
         latest_referrer_host: false,
         latest_landing_page: false,
-        latest_wx_ad_click_id: undefined,
-        url: true,
-        title: true
+        url: false,
+        title: false
       },
-      enc_cookie: false,
-      login_id_key: '$identity_login_id',
       img_use_crossorigin: false,
-      //scrollmap:{delay:6000}
 
       name: 'sa',
-      // referrer字符串截取
       max_referrer_string_length: 200,
-      //通用字符串截取，超过7000的字符串会导致url超长发不出去，所以限制长度
       max_string_length: 500,
-      //    send_error_event: true,
       cross_subdomain: true,
       show_log: true,
       is_debug: false,
       debug_mode: false,
       debug_mode_upload: false,
 
-      // todo 前端session时长
       session_time: 0,
 
       use_client_time: false,
-      //来源参数名字
       source_channel: [],
 
       send_type: 'image',
 
-      // 七鱼过滤id
       vtrack_ignore: {},
 
       auto_init: true,
@@ -2757,15 +2055,14 @@ sd的各个方法，包含sdk的一些基本功能
 
       batch_send: false,
 
-      // 如果要设置，设置数组
       source_type: {},
       callback_timeout: 200,
       datasend_timeout: 3000,
       queue_timeout: 300,
       is_track_device_id: false,
-      ignore_oom: true,
-      app_js_bridge: false,
-      url_is_decode: false
+      use_app_track: false,
+      use_app_track_is_send: true,
+      ignore_oom: true
     };
 
     sd.addReferrerHost = function (data) {
@@ -2787,7 +2084,7 @@ sd的各个方法，包含sdk的一些基本功能
 
     sd.addPropsHook = function (data) {
       if (sd.para.preset_properties && sd.para.preset_properties.url && (data.type === 'track' || data.type === 'track_signup') && typeof data.properties.$url === 'undefined') {
-        data.properties.$url = _.isDecodeURI(sd.para.url_is_decode, window.location.href);
+        data.properties.$url = window.location.href;
       }
       if (sd.para.preset_properties && sd.para.preset_properties.title && (data.type === 'track' || data.type === 'track_signup') && typeof data.properties.$title === 'undefined') {
         data.properties.$title = document.title;
@@ -2795,7 +2092,6 @@ sd的各个方法，包含sdk的一些基本功能
     };
 
     sd.initPara = function (para) {
-      // 默认配置
       sd.para = para || sd.para || {};
       var latestObj = {};
       if (_.isObject(sd.para.is_track_latest)) {
@@ -2803,81 +2099,30 @@ sd的各个方法，包含sdk的一些基本功能
           latestObj['latest_' + latestProp] = sd.para.is_track_latest[latestProp];
         }
       }
-      // 预置属性
+
       sd.para.preset_properties = _.extend({}, sd.para_default.preset_properties, latestObj, sd.para.preset_properties || {});
 
-      // 合并配置
       var i;
       for (i in sd.para_default) {
         if (sd.para[i] === void 0) {
           sd.para[i] = sd.para_default[i];
         }
       }
-      // 修复没有配置协议的问题，自动取当前页面的协议
-      if (typeof sd.para.server_url === 'string') {
-        sd.para.server_url = _.trim(sd.para.server_url);
-        if (sd.para.server_url) {
-          if (sd.para.server_url.slice(0, 3) === '://') {
-            sd.para.server_url = location.protocol.slice(0, -1) + sd.para.server_url;
-          } else if (sd.para.server_url.slice(0, 2) === '//') {
-            sd.para.server_url = location.protocol + sd.para.server_url;
-          } else if (sd.para.server_url.slice(0, 4) !== 'http') {
-            sd.para.server_url = '';
-          }
-        }
-      } else {
-        sd.para.server_url = '';
+      if (typeof sd.para.server_url === 'string' && sd.para.server_url.slice(0, 3) === '://') {
+        sd.para.server_url = location.protocol.slice(-1) + sd.para.server_url;
       }
-
-      if (typeof sd.para.web_url === 'string' && (sd.para.web_url.slice(0, 3) === '://' || sd.para.web_url.slice(0, 2) === '//')) {
-        if (sd.para.web_url.slice(0, 3) === '://') {
-          sd.para.web_url = location.protocol.slice(0, -1) + sd.para.web_url;
-        } else {
-          sd.para.web_url = location.protocol + sd.para.web_url;
-        }
+      if (typeof sd.para.web_url === 'string' && sd.para.web_url.slice(0, 3) === '://') {
+        sd.para.web_url = location.protocol.slice(-1) + sd.para.web_url;
       }
 
       if (sd.para.send_type !== 'image' && sd.para.send_type !== 'ajax' && sd.para.send_type !== 'beacon') {
         sd.para.send_type = 'image';
       }
 
-      // login_id_key参数校验
-      function checkProp(itemName) {
-        // 检查 key, value 是否字符串并不为空，否则打印错误信息，停止执行
-        if (_.isFalsy(itemName)) {
-          sd.log('Key is empty or null');
-          return false;
-        }
-        if (_.isString(itemName) === false) {
-          sd.log('Key must be String');
-          return false;
-        }
-        itemName = _.trim(itemName);
-        if (_.isFalsy(itemName)) {
-          sd.log('Key is empty or null');
-          return false;
-        }
-        var reservedNames = ['$identity_anonymous_id', '$identity_cookie_id'];
-        if (_.indexOf(reservedNames, itemName) > -1 || _.check.checkKeyword(itemName) === false) {
-          sd.log('Key [{{key}}] is invalid'.replace('{{key}}', itemName));
-          return false;
-        }
-        return true;
-      }
-      if (!checkProp(sd.para.login_id_key)) {
-        sd.para.login_id_key = '$identity_login_id';
-      }
-
-      //校验serverurl与location.href的协议是否一致
-      sd.debug.protocol.serverUrl();
-
-      // 初始化打通参数
-      sd.bridge.initPara();
-      sd.bridge.initState();
-
       var batch_send_default = {
         datasend_timeout: 6000,
-        send_interval: 6000
+        send_interval: 6000,
+        one_send_max_length: 6
       };
 
       if (_.localStorage.isSupport() && _.isSupportCors() && typeof localStorage === 'object') {
@@ -2895,7 +2140,15 @@ sd的各个方法，包含sdk的一些基本功能
       var utm_type = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
       var search_type = ['www.baidu.', 'm.baidu.', 'm.sm.cn', 'so.com', 'sogou.com', 'youdao.com', 'google.', 'yahoo.com/', 'bing.com/', 'ask.com/'];
       var social_type = ['weibo.com', 'renren.com', 'kaixin001.com', 'douban.com', 'qzone.qq.com', 'zhihu.com', 'tieba.baidu.com', 'weixin.qq.com'];
-      var search_keyword = { baidu: ['wd', 'word', 'kw', 'keyword'], google: 'q', bing: 'q', yahoo: 'p', sogou: ['query', 'keyword'], so: 'q', sm: 'q' };
+      var search_keyword = {
+        baidu: ['wd', 'word', 'kw', 'keyword'],
+        google: 'q',
+        bing: 'q',
+        yahoo: 'p',
+        sogou: ['query', 'keyword'],
+        so: 'q',
+        sm: 'q'
+      };
 
       if (typeof sd.para.source_type === 'object') {
         sd.para.source_type.utm = _.isArray(sd.para.source_type.utm) ? sd.para.source_type.utm.concat(utm_type) : utm_type;
@@ -2903,58 +2156,27 @@ sd的各个方法，包含sdk的一些基本功能
         sd.para.source_type.social = _.isArray(sd.para.source_type.social) ? sd.para.source_type.social.concat(social_type) : social_type;
         sd.para.source_type.keyword = _.isObject(sd.para.source_type.keyword) ? _.extend(search_keyword, sd.para.source_type.keyword) : search_keyword;
       }
-      var collect_tags_default = {
-        div: false
-      };
-      var ignore_tags_default = ['mark', '/mark', 'strong', 'b', 'em', 'i', 'u', 'abbr', 'ins', 'del', 's', 'sup'];
+
       if (_.isObject(sd.para.heatmap)) {
         sd.para.heatmap.clickmap = sd.para.heatmap.clickmap || 'default';
         sd.para.heatmap.scroll_notice_map = sd.para.heatmap.scroll_notice_map || 'default';
         sd.para.heatmap.scroll_delay_time = sd.para.heatmap.scroll_delay_time || 4000;
-        sd.para.heatmap.scroll_event_duration = sd.para.heatmap.scroll_event_duration || 18000; // The max value of $event_duration property for $WebStay event, in seconds (5 Hours).
+        sd.para.heatmap.scroll_event_duration = sd.para.heatmap.scroll_event_duration || 18000;
         sd.para.heatmap.renderRefreshTime = sd.para.heatmap.renderRefreshTime || 1000;
         sd.para.heatmap.loadTimeout = sd.para.heatmap.loadTimeout || 1000;
-        var trackAttrs = _.isArray(sd.para.heatmap.track_attr)
-          ? _.filter(sd.para.heatmap.track_attr, function (v) {
-              return v && typeof v === 'string';
-            })
-          : [];
-        trackAttrs.push('data-sensors-click');
-        sd.para.heatmap.track_attr = trackAttrs;
-
-        if (_.isObject(sd.para.heatmap.collect_tags)) {
-          if (sd.para.heatmap.collect_tags.div === true) {
-            sd.para.heatmap.collect_tags.div = { ignore_tags: ignore_tags_default };
-          } else if (_.isObject(sd.para.heatmap.collect_tags.div)) {
-            if (sd.para.heatmap.collect_tags.div.ignore_tags) {
-              if (!_.isArray(sd.para.heatmap.collect_tags.div.ignore_tags)) {
-                sd.log('ignore_tags 参数必须是数组格式');
-                sd.para.heatmap.collect_tags.div.ignore_tags = ignore_tags_default;
-              }
-            } else {
-              sd.para.heatmap.collect_tags.div.ignore_tags = ignore_tags_default;
-            }
-          } else {
-            sd.para.heatmap.collect_tags.div = false;
-          }
-        } else {
-          sd.para.heatmap.collect_tags = collect_tags_default;
-        }
       }
-      // 优化配置
-      if (_.isArray(sd.para.server_url) && sd.para.server_url.length) {
+      if (typeof sd.para.server_url === 'object' && sd.para.server_url.length) {
         for (i = 0; i < sd.para.server_url.length; i++) {
           if (!/sa\.gif[^\/]*$/.test(sd.para.server_url[i])) {
             sd.para.server_url[i] = sd.para.server_url[i].replace(/\/sa$/, '/sa.gif').replace(/(\/sa)(\?[^\/]+)$/, '/sa.gif$2');
           }
         }
-      } else if (!/sa\.gif[^\/]*$/.test(sd.para.server_url) && typeof sd.para.server_url === 'string') {
+      } else if (!/sa\.gif[^\/]*$/.test(sd.para.server_url)) {
         sd.para.server_url = sd.para.server_url.replace(/\/sa$/, '/sa.gif').replace(/(\/sa)(\?[^\/]+)$/, '/sa.gif$2');
       }
       if (typeof sd.para.server_url === 'string') {
         sd.para.debug_mode_url = sd.para.debug_mode_url || sd.para.server_url.replace('sa.gif', 'debug');
       }
-      // 是否需要非cache，等于每次请求文件
       if (sd.para.noCache === true) {
         sd.para.noCache = '?' + new Date().getTime();
       } else {
@@ -2972,7 +2194,6 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    // sa 当前状态管理
     sd.readyState = {
       state: 0,
       historyState: [],
@@ -2999,15 +2220,14 @@ sd的各个方法，包含sdk的一些基本功能
 
     sd.setInitVar = function () {
       sd._t = sd._t || 1 * new Date();
-      sd.lib_version = '1.16.7';
+      sd.lib_version = '1.15.4';
       sd.is_first_visitor = false;
-      // 标准广告系列来源
       sd.source_channel_standard = 'utm_source utm_medium utm_campaign utm_content utm_term';
     };
 
     sd.log = function () {
       if ((_.sessionStorage.isSupport() && sessionStorage.getItem('sensorsdata_jssdk_debug') === 'true') || sd.para.show_log) {
-        if (_.isObject(arguments[0]) && (sd.para.show_log === true || sd.para.show_log === 'string' || sd.para.show_log === false)) {
+        if (sd.para.show_log === true || sd.para.show_log === 'string' || sd.para.show_log === false) {
           arguments[0] = _.formatJsonString(arguments[0]);
         }
 
@@ -3021,23 +2241,16 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    /**
-     * 设置 sessionStorage 开启本地控制台日志输出
-     */
     sd.enableLocalLog = function () {
       if (_.sessionStorage.isSupport()) {
         try {
           sessionStorage.setItem('sensorsdata_jssdk_debug', 'true');
         } catch (e) {
           sd.log('enableLocalLog error: ' + e.message);
-          // handle the exception here.
         }
       }
     };
 
-    /**
-     * 删除 sessionStorage 关闭本地控制台日志输出
-     */
     sd.disableLocalLog = function () {
       if (_.sessionStorage.isSupport()) {
         sessionStorage.removeItem('sensorsdata_jssdk_debug');
@@ -3045,39 +2258,8 @@ sd的各个方法，包含sdk的一些基本功能
     };
 
     sd.debug = {
-      distinct_id: function () {
-        /*
-    var relation = {
-      'e-0': '未知错误',
-      'e-1': 'toState()传值的数据中缺少distinct_id，SDK自动分配distinct_id',
-      'e-2': 'toState()传值的数据不是一个有效的JSON字符串，SDK自动分配distinct_id'
-    };
-    var debug_info = relation['e-' + key] || relation['e-0'];
-    if (sd.para.is_debug === true || sd.para.is_debug.distinct_id === true) {
-      sd.log(debug_info);
-      this._sendDebug('distinct_id-' + key + '-' + JSON.stringify(data));
-    }
-    */
-      },
-      jssdkDebug: function () {
-        /*
-    if (sd.para.is_debug === true) {
-      if(_.isString(recevie_prop)){
-        this._sendDebug(recevie_prop);
-      }else{
-        var cookie = store.getCookieName();
-        var match = document.cookie.match(new RegExp(cookie + '[^;]+'));
-        if(match && match[0] ){
-          cookie = match[0];
-        }else{
-          cookie = '';
-        }
-        recevie_prop._jssdk_debug_info = '(' + cookie + ')' + navigator.userAgent;
-        this._sendDebug(JSON.stringify(recevie_prop));
-      }
-    }
-    */
-      },
+      distinct_id: function () {},
+      jssdkDebug: function () {},
       _sendDebug: function (debugString) {
         sd.track('_sensorsdata2019_debug', {
           _jssdk_debug_info: debugString
@@ -3089,83 +2271,17 @@ sd的各个方法，包含sdk的一些基本功能
           1: name + 'use_app_track为false',
           2: name + 'Android或者iOS，没有暴露相应方法',
           3.1: name + 'Android校验server_url失败',
-          3.2: name + 'iOS校验server_url失败',
-          4.1: name + 'H5 校验 iOS server_url 失败',
-          4.2: name + 'H5 校验 Android server_url 失败'
+          3.2: name + 'iOS校验server_url失败'
         };
         var output = obj.output;
         var step = obj.step;
-        var data = obj.data || '';
-        // 控制台输出
+        var data = obj.data;
         if (output === 'all' || output === 'console') {
           sd.log(relation[step]);
         }
-        // 代码输出
         if ((output === 'all' || output === 'code') && _.isObject(sd.para.is_debug) && sd.para.is_debug.apph5) {
           if (!data.type || data.type.slice(0, 7) !== 'profile') {
             data.properties._jssdk_debug_info = 'apph5-' + String(step);
-          }
-        }
-      },
-      defineMode: function (type) {
-        var debugList = {
-          1: {
-            title: '当前页面无法进行可视化全埋点',
-            message: 'App SDK 与 Web JS SDK 没有进行打通，请联系贵方技术人员修正 App SDK 的配置，详细信息请查看文档。',
-            link_text: '配置文档',
-            link_url: 'https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_link-1573913.html'
-          },
-          2: {
-            title: '当前页面无法进行可视化全埋点',
-            message: 'App SDK 与 Web JS SDK 没有进行打通，请联系贵方技术人员修正 Web JS SDK 的配置，详细信息请查看文档。',
-            link_text: '配置文档',
-            link_url: 'https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_link-1573913.html'
-          },
-          3: {
-            title: '当前页面无法进行可视化全埋点',
-            message: 'Web JS SDK 没有开启全埋点配置，请联系贵方工作人员修正 SDK 的配置，详细信息请查看文档。',
-            link_text: '配置文档',
-            link_url: 'https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_web_all-1573964.html'
-          },
-          4: {
-            title: '当前页面无法进行可视化全埋点',
-            message: 'Web JS SDK 配置的数据校验地址与 App SDK 配置的数据校验地址不一致，请联系贵方工作人员修正 SDK 的配置，详细信息请查看文档。',
-            link_text: '配置文档',
-            link_url: 'https://manual.sensorsdata.cn/sa/latest/tech_sdk_client_link-1573913.html'
-          }
-        };
-        if (type && debugList[type]) {
-          return debugList[type];
-        } else {
-          return false;
-        }
-      },
-      protocol: {
-        protocolIsSame: function (url1, url2) {
-          try {
-            if (_.URL(url1).protocol !== _.URL(url2).protocol) {
-              return false;
-            }
-          } catch (error) {
-            sd.log('不支持 _.URL 方法');
-            return false;
-          }
-          return true;
-        },
-        serverUrl: function () {
-          //由于个别浏览器安全限制协议不一致可能发送失败
-          if (_.isString(sd.para.server_url) && sd.para.server_url !== '' && !this.protocolIsSame(sd.para.server_url, location.href)) {
-            sd.log('SDK 检测到您的数据发送地址和当前页面地址的协议不一致，建议您修改成一致的协议。\n因为：1、https 下面发送 http 的图片请求会失败。2、http 页面使用 https + ajax 方式发数据，在 ie9 及以下会丢失数据。');
-          }
-        },
-        ajax: function (url) {
-          //埋点请求不校验
-          if (url === sd.para.server_url) {
-            return false;
-          }
-          //其他业务如abtest使用ajax的校验
-          if (_.isString(url) && url !== '' && !this.protocolIsSame(url, location.href)) {
-            sd.log('SDK 检测到您的数据发送地址和当前页面地址的协议不一致，建议您修改成一致的协议。因为 http 页面使用 https + ajax 方式发数据，在 ie9 及以下会丢失数据。');
           }
         }
       }
@@ -3191,11 +2307,9 @@ sd的各个方法，包含sdk的一些基本功能
       isReady: function (callback) {
         callback();
       },
-      // 获取谷歌标准参数
       getUtm: function () {
         return _.info.campaignParams();
       },
-      // 获取当前页面停留时间
       getStayTime: function () {
         return (new Date() - sd._t) / 1000;
       },
@@ -3225,7 +2339,6 @@ sd的各个方法，包含sdk的一些基本功能
           sd.setProfile(obj);
         }
       },
-      //set init referrer
       setInitReferrer: function () {
         var _referrer = _.getReferrer();
         sd.setOnceProfile({
@@ -3233,7 +2346,6 @@ sd的各个方法，包含sdk的一些基本功能
           _init_referrer_host: _.info.pageProp.referrer_host
         });
       },
-      // set init sessionRegister cookie
       setSessionReferrer: function () {
         var _referrer = _.getReferrer();
         store.setSessionPropsOnce({
@@ -3241,7 +2353,6 @@ sd的各个方法，包含sdk的一些基本功能
           _session_referrer_host: _.info.pageProp.referrer_host
         });
       },
-      // set default referrr and pageurl
       setDefaultAttr: function () {
         _.info.register({
           _current_url: location.href,
@@ -3253,8 +2364,7 @@ sd的各个方法，包含sdk的一些基本功能
         if (typeof target === 'object' && target.tagName) {
           var tagName = target.tagName.toLowerCase();
           var parent_ele = target.parentNode.tagName.toLowerCase();
-          var trackAttrs = sd.para.heatmap && sd.para.heatmap.track_attr ? sd.para.heatmap.track_attr : ['data-sensors-click'];
-          if (tagName !== 'button' && tagName !== 'a' && parent_ele !== 'a' && parent_ele !== 'button' && tagName !== 'input' && tagName !== 'textarea' && !_.hasAttributes(target, trackAttrs)) {
+          if (tagName !== 'button' && tagName !== 'a' && parent_ele !== 'a' && parent_ele !== 'button' && tagName !== 'input' && tagName !== 'textarea' && !_.hasAttribute(target, 'data-sensors-click')) {
             heatmap.start(null, target, tagName, props, callback);
           }
         }
@@ -3278,13 +2388,13 @@ sd的各个方法，包含sdk的一些基本功能
         function getUtm() {
           var utms = _.info.campaignParams();
           var $utms = {};
-          _.each(utms, function (v, i, utms) {
+          for (var i in utms) {
             if ((' ' + sd.source_channel_standard + ' ').indexOf(' ' + i + ' ') !== -1) {
               $utms['$' + i] = utms[i];
             } else {
               $utms[i] = utms[i];
             }
-          });
+          }
           return $utms;
         }
 
@@ -3292,9 +2402,8 @@ sd的各个方法，包含sdk的一些基本功能
           sd.setOnceProfile(
             _.extend(
               {
-                // 暂时隐藏，等extractor都部署上去 $first_landing_page: _.info.pageProp.url.slice(0, sd.para.max_referrer_string_length),
                 $first_visit_time: new Date(),
-                $first_referrer: _.isDecodeURI(sd.para.url_is_decode, _.getReferrer()),
+                $first_referrer: _.getReferrer(),
                 $first_browser_language: navigator.language || '取值异常',
                 $first_browser_charset: typeof document.charset === 'string' ? document.charset.toUpperCase() : '取值异常',
                 $first_traffic_source_type: _.getSourceFromReferrer(),
@@ -3314,8 +2423,8 @@ sd的各个方法，包含sdk的一些基本功能
             '$pageview',
             _.extend(
               {
-                $referrer: _.isDecodeURI(sd.para.url_is_decode, url),
-                $url: _.isDecodeURI(sd.para.url_is_decode, location.href),
+                $referrer: url,
+                $url: location.href,
                 $url_path: location.pathname,
                 $title: document.title
               },
@@ -3331,28 +2440,31 @@ sd的各个方法，包含sdk的一些基本功能
       },
       autoTrackWithoutProfile: function (para, callback) {
         para = _.isObject(para) ? para : {};
-        this.autoTrack(_.extend(para, { not_set_profile: true }), callback);
+        this.autoTrack(
+          _.extend(para, {
+            not_set_profile: true
+          }),
+          callback
+        );
       },
       autoTrack: function (para, callback) {
         para = _.isObject(para) ? para : {};
 
         var utms = _.info.campaignParams();
         var $utms = {};
-        _.each(utms, function (v, i, utms) {
+        for (var i in utms) {
           if ((' ' + sd.source_channel_standard + ' ').indexOf(' ' + i + ' ') !== -1) {
             $utms['$' + i] = utms[i];
           } else {
             $utms[i] = utms[i];
           }
-        });
-        // setOnceProfile 如果是新用户，且允许设置profile
+        }
         if (sd.is_first_visitor && !para.not_set_profile) {
           sd.setOnceProfile(
             _.extend(
               {
-                // 暂时隐藏，等extractor都部署上去 $first_landing_page: _.info.pageProp.url.slice(0, sd.para.max_referrer_string_length),
                 $first_visit_time: new Date(),
-                $first_referrer: _.isDecodeURI(sd.para.url_is_decode, _.getReferrer()),
+                $first_referrer: _.getReferrer(),
                 $first_browser_language: navigator.language || '取值异常',
                 $first_browser_charset: typeof document.charset === 'string' ? document.charset.toUpperCase() : '取值异常',
                 $first_traffic_source_type: _.getSourceFromReferrer(),
@@ -3367,7 +2479,6 @@ sd的各个方法，包含sdk的一些基本功能
           delete para.not_set_profile;
         }
 
-        // 解决单页面的referrer问题
         var current_page_url = location.href;
 
         if (sd.para.is_single_page) {
@@ -3377,8 +2488,8 @@ sd的各个方法，包含sdk的一些基本功能
               '$pageview',
               _.extend(
                 {
-                  $referrer: _.isDecodeURI(sd.para.url_is_decode, referrer),
-                  $url: _.isDecodeURI(sd.para.url_is_decode, location.href),
+                  $referrer: referrer,
+                  $url: location.href,
                   $url_path: location.pathname,
                   $title: document.title
                 },
@@ -3390,12 +2501,13 @@ sd的各个方法，包含sdk的一些基本功能
             current_page_url = location.href;
           });
         }
+
         sd.track(
           '$pageview',
           _.extend(
             {
-              $referrer: _.isDecodeURI(sd.para.url_is_decode, _.getReferrer()),
-              $url: _.isDecodeURI(sd.para.url_is_decode, location.href),
+              $referrer: _.getReferrer(),
+              $url: location.href,
               $url_path: location.pathname,
               $title: document.title
             },
@@ -3410,7 +2522,6 @@ sd的各个方法，包含sdk的一些基本功能
         if (_.isEmptyObject(sd.store._state)) {
           return '请先初始化SDK';
         } else {
-          // 优先使用临时属性
           return sd.store._state._first_id || sd.store._state.first_id || sd.store._state._distinct_id || sd.store._state.distinct_id;
         }
       },
@@ -3418,13 +2529,10 @@ sd的各个方法，包含sdk的一些基本功能
         if (!_.isObject(para)) {
           return false;
         }
-        //      sd.pluginTempFunction = sd.pluginTempFunction || {};
         _.each(para, function (v, k) {
           if (_.isFunction(v)) {
-            //          sd.pluginTempFunction[k] = v;
             if (_.isObject(window.SensorsDataWebJSSDKPlugin) && window.SensorsDataWebJSSDKPlugin[k]) {
               v(window.SensorsDataWebJSSDKPlugin[k]);
-              //            delete sd.pluginTempFunction[k];
             } else {
               sd.log(k + '没有获取到,请查阅文档，调整' + k + '的引入顺序！');
             }
@@ -3437,20 +2545,8 @@ sd的各个方法，包含sdk的一些基本功能
       useAppPlugin: function () {
         this.setPlugin.apply(this, arguments);
       }
-      /*,
-    pluginIsReady: function(para){
-      // sdk先加载，popup后加载调用 quick('pluginIsReady',{name:popup,self:this})
-      if(!sd.pluginTempFunction || !_.isObject(para) || !_.isFunction(para.name)){
-        return false;
-      }
-      if(sd.pluginTempFunction[para.name]){
-        sd.pluginTempFunction[para.name](para.self);
-        delete sd.pluginTempFunction[para.name];
-      }
-    }*/
     };
 
-    // 一些常见的方法
     sd.quick = function () {
       var arg = Array.prototype.slice.call(arguments);
       var arg0 = arg[0];
@@ -3464,31 +2560,20 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    // 调用插件的 init 方法,并且返回插件对象
-
     sd.use = function (name, option) {
-      if (!_.isString(name)) {
-        sd.log('use插件名称必须是字符串！');
-        return false;
-      }
-
-      if (_.isObject(window.SensorsDataWebJSSDKPlugin) && _.isObject(window.SensorsDataWebJSSDKPlugin[name]) && _.isFunction(window.SensorsDataWebJSSDKPlugin[name].init)) {
-        window.SensorsDataWebJSSDKPlugin[name].init(sd, option);
-        return window.SensorsDataWebJSSDKPlugin[name];
-      } else if (_.isObject(sd.modules) && _.isObject(sd.modules[name]) && _.isFunction(sd.modules[name].init)) {
+      if (_.isObject(sd.modules) && _.isObject(sd.modules[name]) && _.isFunction(sd.modules[name].init)) {
+        option = option || {};
         sd.modules[name].init(sd, option);
-        return sd.modules[name];
-      } else {
-        sd.log(name + '没有获取到,请查阅文档，调整' + name + '的引入顺序！');
       }
     };
 
-    /*
-     * @param {string} event
-     * @param {string} properties
-     * */
     sd.track = function (e, p, c) {
-      if (saEvent.check({ event: e, properties: p })) {
+      if (
+        saEvent.check({
+          event: e,
+          properties: p
+        })
+      ) {
         saEvent.send(
           {
             type: 'track',
@@ -3500,115 +2585,19 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    sd.IDENTITY_KEY = {
-      EMAIL: '$identity_email',
-      MOBILE: '$identity_mobile'
-    };
-
-    sd.bind = function (itemName, itemValue) {
-      // 检查 key, value 是否字符串并不为空，否则打印错误信息，停止执行
-      if (_.isFalsy(itemName)) {
-        sd.log('Key is empty or null');
-        return false;
-      }
-      if (_.isString(itemName) === false) {
-        sd.log('Key must be String');
-        return false;
-      }
-      itemName = _.trim(itemName);
-      if (_.isFalsy(itemName)) {
-        sd.log('Key is empty or null');
-        return false;
-      }
-      var reservedNames = ['$identity_login_id', '$identity_anonymous_id', '$identity_cookie_id', sd.para.login_id_key];
-      if (_.indexOf(reservedNames, itemName) > -1 || _.check.checkKeyword(itemName) === false) {
-        sd.log('Key [{{key}}] is invalid'.replace('{{key}}', itemName));
-        return false;
-      }
-
-      if (_.isFalsy(itemValue)) {
-        sd.log('Value is empty or null');
-        return false;
-      }
-      if (_.isString(itemValue) === false) {
-        sd.log('Value must be String');
-        return false;
-      }
-
-      if (_.check.checkIdLength(itemValue) === false) {
-        sd.log('Value [{{value}}] is beyond the maximum length 255'.replace('{{value}}', itemValue));
-        return false;
-      }
-
-      sd.store._state.identities[itemName] = itemValue;
-      sd.store.save();
-
-      saEvent.send({
-        type: 'track_id_bind',
-        event: '$BindID',
-        properties: {}
-      });
-    };
-
-    sd.unbind = function (itemName, itemValue) {
-      // 检查 key, value 是否字符串并不为空，否则打印错误信息，停止执行
-      if (_.isFalsy(itemName)) {
-        sd.log('Key is empty or null');
-        return false;
-      }
-      if (_.isString(itemName) === false) {
-        sd.log('Key must be String');
-        return false;
-      }
-      itemName = _.trim(itemName);
-      if (_.isFalsy(itemName)) {
-        sd.log('Key is empty or null');
-        return false;
-      }
-      var reservedNames = ['$identity_login_id', '$identity_anonymous_id', '$identity_cookie_id', sd.para.login_id_key];
-      if (_.indexOf(reservedNames, itemName) > -1 || _.check.checkKeyword(itemName) === false) {
-        sd.log('Key [{{key}}] is invalid'.replace('{{key}}', itemName));
-        return false;
-      }
-
-      if (_.isFalsy(itemValue)) {
-        sd.log('Value is empty or null');
-        return false;
-      }
-      if (_.isString(itemValue) === false) {
-        sd.log('Value must be String');
-        return false;
-      }
-
-      if (_.check.checkIdLength(itemValue) === false) {
-        sd.log('Value [{{value}}] is beyond the maximum length 255'.replace('{{value}}', itemValue));
-        return false;
-      }
-
-      if (sd.store._state.identities.hasOwnProperty(itemName) && sd.store._state.identities[itemName] === itemValue) {
-        delete sd.store._state.identities[itemName];
-        sd.store.save();
-      }
-
-      var identities = {};
-      identities[itemName] = itemValue;
-
-      saEvent.send({
-        identities: identities,
-        type: 'track_id_unbind',
-        event: '$UnbindID',
-        properties: {}
-      });
-    };
-
     sd.trackLink = function (link, event_name, event_prop) {
       if (typeof link === 'object' && link.tagName) {
-        _.trackLink({ ele: link }, event_name, event_prop);
+        _.trackLink(
+          {
+            ele: link
+          },
+          event_name,
+          event_prop
+        );
       } else if (typeof link === 'object' && link.target && link.event) {
         _.trackLink(link, event_name, event_prop);
       }
     };
-    // 跟踪链接
     sd.trackLinks = function (link, event_name, event_prop) {
       var ele = link;
       event_prop = event_prop || {};
@@ -3619,24 +2608,26 @@ sd的各个方法，包含sdk的一些基本功能
         return false;
       }
       _.addEvent(link, 'click', function (e) {
-        e.preventDefault(); // 阻止默认跳转
+        e.preventDefault();
         var hasCalled = false;
-        setTimeout(track_a_click, 1000); //如果没有回调成功，设置超时回调
+        setTimeout(track_a_click, 1000);
+
         function track_a_click() {
           if (!hasCalled) {
             hasCalled = true;
-            location.href = link.href; //把 A 链接的点击跳转,改成 location 的方式跳转
+            location.href = link.href;
           }
         }
-        sd.track(event_name, event_prop, track_a_click); //把跳转操作加在callback里
+        sd.track(event_name, event_prop, track_a_click);
       });
     };
 
-    /*
-     * @param {object} properties
-     * */
     sd.setProfile = function (p, c) {
-      if (saEvent.check({ propertiesMust: p })) {
+      if (
+        saEvent.check({
+          propertiesMust: p
+        })
+      ) {
         saEvent.send(
           {
             type: 'profile_set',
@@ -3648,7 +2639,11 @@ sd的各个方法，包含sdk的一些基本功能
     };
 
     sd.setOnceProfile = function (p, c) {
-      if (saEvent.check({ propertiesMust: p })) {
+      if (
+        saEvent.check({
+          propertiesMust: p
+        })
+      ) {
         saEvent.send(
           {
             type: 'profile_set_once',
@@ -3659,11 +2654,12 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    /*
-     * @param {object} properties
-     * */
     sd.appendProfile = function (p, c) {
-      if (saEvent.check({ propertiesMust: p })) {
+      if (
+        saEvent.check({
+          propertiesMust: p
+        })
+      ) {
         _.each(p, function (value, key) {
           if (_.isString(value)) {
             p[key] = [value];
@@ -3685,25 +2681,27 @@ sd的各个方法，包含sdk的一些基本功能
         }
       }
     };
-    /*
-     * @param {object} properties
-     * */
     sd.incrementProfile = function (p, c) {
       var str = p;
       if (_.isString(p)) {
         p = {};
         p[str] = 1;
       }
+
       function isChecked(p) {
         for (var i in p) {
-          if (Object.prototype.hasOwnProperty.call(p, i) && !/-*\d+/.test(String(p[i]))) {
+          if (!/-*\d+/.test(String(p[i]))) {
             return false;
           }
         }
         return true;
       }
 
-      if (saEvent.check({ propertiesMust: p })) {
+      if (
+        saEvent.check({
+          propertiesMust: p
+        })
+      ) {
         if (isChecked(p)) {
           saEvent.send(
             {
@@ -3728,9 +2726,6 @@ sd的各个方法，包含sdk的一些基本功能
       store.set('distinct_id', _.UUID());
       store.set('first_id', '');
     };
-    /*
-     * @param {object} properties
-     * */
     sd.unsetProfile = function (p, c) {
       var str = p;
       var temp = {};
@@ -3757,9 +2752,6 @@ sd的各个方法，包含sdk的一些基本功能
         sd.log('profile_unset的参数是数组');
       }
     };
-    /*
-     * @param {string} distinct_id
-     * */
     sd.identify = function (id, isSave) {
       if (typeof id === 'number') {
         id = String(id);
@@ -3772,9 +2764,11 @@ sd的各个方法，包含sdk的一些基本功能
         } else {
           store.set('distinct_id', uuid);
         }
-        // 3.0
-        sd.store.identities.set('identify', uuid);
-      } else if (saEvent.check({ distinct_id: id })) {
+      } else if (
+        saEvent.check({
+          distinct_id: id
+        })
+      ) {
         if (isSave === true) {
           if (firstId) {
             store.set('first_id', id);
@@ -3788,20 +2782,18 @@ sd的各个方法，包含sdk的一些基本功能
             store.change('distinct_id', id);
           }
         }
-
-        sd.store.identities.set('identify', id);
       } else {
         sd.log('identify的参数必须是字符串');
       }
     };
-    /*
-     * 这个接口是一个较为复杂的功能，请在使用前先阅读相关说明:http://www.sensorsdata.cn/manual/track_signup.html，并在必要时联系我们的技术支持人员。
-     * @param {string} distinct_id
-     * @param {string} event
-     * @param {object} properties
-     * */
     sd.trackSignup = function (id, e, p, c) {
-      if (saEvent.check({ distinct_id: id, event: e, properties: p })) {
+      if (
+        saEvent.check({
+          distinct_id: id,
+          event: e,
+          properties: p
+        })
+      ) {
         var original_id = store.getFirstId() || store.getDistinctId();
         store.set('distinct_id', id);
         saEvent.send(
@@ -3817,19 +2809,14 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    /*
-     * @param {string} testid
-     * @param {string} groupid
-     * */
+    sd.trackAbtest = function (t, g) {};
 
-    /**
-     * Register a set of properties, which are included with all events.
-     *
-     * @param {Object} obj - An object of properties to be registered.
-     *
-     */
     sd.registerPage = function (obj) {
-      if (saEvent.check({ properties: obj })) {
+      if (
+        saEvent.check({
+          properties: obj
+        })
+      ) {
         _.extend(_.info.currentProps, obj);
       } else {
         sd.log('register输入的参数有误');
@@ -3840,22 +2827,12 @@ sd的各个方法，包含sdk的一些基本功能
       store.clearAllProps(arr);
     };
 
-    sd.clearPageRegister = function (arr) {
-      if (_.isArray(arr) && arr.length > 0) {
-        for (var i = 0; i < arr.length; i++) {
-          if (_.isString(arr[i]) && arr[i] in _.info.currentProps) {
-            delete _.info.currentProps[arr[i]];
-          }
-        }
-      } else if (arr === true) {
-        for (var i in _.info.currentProps) {
-          delete _.info.currentProps[i];
-        }
-      }
-    };
-
     sd.register = function (props) {
-      if (saEvent.check({ properties: props })) {
+      if (
+        saEvent.check({
+          properties: props
+        })
+      ) {
         store.setProps(props);
       } else {
         sd.log('register输入的参数有误');
@@ -3863,7 +2840,11 @@ sd的各个方法，包含sdk的一些基本功能
     };
 
     sd.registerOnce = function (props) {
-      if (saEvent.check({ properties: props })) {
+      if (
+        saEvent.check({
+          properties: props
+        })
+      ) {
         store.setPropsOnce(props);
       } else {
         sd.log('registerOnce输入的参数有误');
@@ -3871,7 +2852,11 @@ sd的各个方法，包含sdk的一些基本功能
     };
 
     sd.registerSession = function (props) {
-      if (saEvent.check({ properties: props })) {
+      if (
+        saEvent.check({
+          properties: props
+        })
+      ) {
         store.setSessionProps(props);
       } else {
         sd.log('registerSession输入的参数有误');
@@ -3879,7 +2864,11 @@ sd的各个方法，包含sdk的一些基本功能
     };
 
     sd.registerSessionOnce = function (props) {
-      if (saEvent.check({ properties: props })) {
+      if (
+        saEvent.check({
+          properties: props
+        })
+      ) {
         store.setSessionPropsOnce(props);
       } else {
         sd.log('registerSessionOnce输入的参数有误');
@@ -3890,18 +2879,11 @@ sd的各个方法，包含sdk的一些基本功能
       if (typeof id === 'number') {
         id = String(id);
       }
-      if (saEvent.check({ distinct_id: id })) {
-        // 如果已登录，再次调用 login() 传入的是匿名 id，忽略本次调用
-        if (sd.store._state.identities.hasOwnProperty(sd.para.login_id_key) && id === sd.store._state.first_id) {
-          return false;
-        }
-
-        var isNewLoginId = (sd.store._state.identities.hasOwnProperty(sd.para.login_id_key) === false || id !== sd.store._state.identities[sd.para.login_id_key]) && id !== sd.store.getDistinctId();
-        // 3.0 新增
-        if (isNewLoginId) {
-          sd.store._state.identities[sd.para.login_id_key] = id;
-        }
-
+      if (
+        saEvent.check({
+          distinct_id: id
+        })
+      ) {
         var firstId = store.getFirstId();
         var distinctId = store.getDistinctId();
         if (id !== distinctId) {
@@ -3911,15 +2893,6 @@ sd的各个方法，包含sdk的一些基本功能
           sd.trackSignup(id, '$SignUp', {}, callback);
         } else {
           callback && callback();
-        }
-
-        // 3.0 新增
-        if (isNewLoginId) {
-          sd.store.identities.set('login', id);
-          sd.store.set('history_login_id', {
-            name: sd.para.login_id_key,
-            value: id
-          });
         }
       } else {
         sd.log('login的参数必须是字符串');
@@ -3940,33 +2913,26 @@ sd的各个方法，包含sdk的一些基本功能
       } else {
         sd.log('没有first_id，logout失败');
       }
-      // 更新 identities
-      sd.store.identities.set('logout');
-      sd.store.set('history_login_id', {
-        name: '',
-        value: ''
-      });
     };
 
     sd.getPresetProperties = function () {
       function getUtm() {
         var utms = _.info.campaignParams();
         var $utms = {};
-        _.each(utms, function (v, i, utms) {
+        for (var i in utms) {
           if ((' ' + sd.source_channel_standard + ' ').indexOf(' ' + i + ' ') !== -1) {
             $utms['$' + i] = utms[i];
           } else {
             $utms[i] = utms[i];
           }
-        });
+        }
         return $utms;
       }
 
       var obj = {
-        $is_first_day: _.cookie.getNewUser(),
-        $referrer: _.isDecodeURI(sd.para.url_is_decode, _.info.pageProp.referrer) || '',
+        $referrer: _.info.pageProp.referrer || '',
         $referrer_host: _.info.pageProp.referrer ? _.getHostname(_.info.pageProp.referrer) : '',
-        $url: _.isDecodeURI(sd.para.url_is_decode, location.href),
+        $url: location.href,
         $url_path: location.pathname,
         $title: document.title || '',
         _distinct_id: store.getDistinctId()
@@ -3977,334 +2943,9 @@ sd的各个方法，包含sdk的一些基本功能
       }
       return result;
     };
-    /*
-  sd.noticePluginIsReady = function(){
-    if(_.isObject(window.SensorsDataWebJSSDKPlugin)){
-      _.each(window.SensorsDataWebJSSDKPlugin, function(v,k){
-        if((_.isObject(v) || _.isFunction(v)) && _.isFunction(v['setWebSDKReady'])){
-          v['setWebSDKReady']();
-        }
-      });
-    }
-  };
-*/
-
-    sd.detectMode = function () {
-      var heatmapMode = {
-        searchKeywordMatch: location.search.match(/sa-request-id=([^&#]+)/),
-        isSeachHasKeyword: function () {
-          var match = this.searchKeywordMatch;
-          if (match && match[0] && match[1]) {
-            if (typeof sessionStorage.getItem('sensors-visual-mode') === 'string') {
-              sessionStorage.removeItem('sensors-visual-mode');
-            }
-            return true;
-          } else {
-            return false;
-          }
-        },
-        hasKeywordHandle: function () {
-          var match = this.searchKeywordMatch;
-          var type = location.search.match(/sa-request-type=([^&#]+)/);
-          var web_url = location.search.match(/sa-request-url=([^&#]+)/);
-          heatmap.setNotice(web_url);
-          if (_.sessionStorage.isSupport()) {
-            if (web_url && web_url[0] && web_url[1]) {
-              sessionStorage.setItem('sensors_heatmap_url', decodeURIComponent(web_url[1]));
-            }
-            sessionStorage.setItem('sensors_heatmap_id', match[1]);
-            if (type && type[0] && type[1]) {
-              if (type[1] === '1' || type[1] === '2' || type[1] === '3') {
-                type = type[1];
-                sessionStorage.setItem('sensors_heatmap_type', type);
-              } else {
-                type = null;
-              }
-            } else {
-              if (sessionStorage.getItem('sensors_heatmap_type') !== null) {
-                type = sessionStorage.getItem('sensors_heatmap_type');
-              } else {
-                type = null;
-              }
-            }
-          }
-          this.isReady(match[1], type);
-        },
-        isReady: function (data, type, url) {
-          if (sd.para.heatmap_url) {
-            _.loadScript({
-              success: function () {
-                setTimeout(function () {
-                  if (typeof sa_jssdk_heatmap_render !== 'undefined') {
-                    sa_jssdk_heatmap_render(sd, data, type, url);
-                    if (typeof console === 'object' && typeof console.log === 'function') {
-                      if (!(sd.heatmap_version && sd.heatmap_version === sd.lib_version)) {
-                        console.log('heatmap.js与sensorsdata.js版本号不一致，可能存在风险!');
-                      }
-                    }
-                  }
-                }, 0);
-              },
-              error: function () {},
-              type: 'js',
-              url: sd.para.heatmap_url
-            });
-          } else {
-            sd.log('没有指定heatmap_url的路径');
-          }
-        },
-        isStorageHasKeyword: function () {
-          return _.sessionStorage.isSupport() && typeof sessionStorage.getItem('sensors_heatmap_id') === 'string';
-        },
-        storageHasKeywordHandle: function () {
-          heatmap.setNotice();
-          heatmapMode.isReady(sessionStorage.getItem('sensors_heatmap_id'), sessionStorage.getItem('sensors_heatmap_type'), location.href);
-        }
-      };
-
-      var vtrackMode = {
-        isStorageHasKeyword: function () {
-          return _.sessionStorage.isSupport() && typeof sessionStorage.getItem('sensors-visual-mode') === 'string';
-        },
-        isSearchHasKeyword: function () {
-          if (location.search.match(/sa-visual-mode=true/)) {
-            if (typeof sessionStorage.getItem('sensors_heatmap_id') === 'string') {
-              sessionStorage.removeItem('sensors_heatmap_id');
-            }
-            return true;
-          } else {
-            return false;
-          }
-        },
-        loadVtrack: function () {
-          _.loadScript({
-            success: function () {},
-            error: function () {},
-            type: 'js',
-            url: sd.para.vtrack_url ? sd.para.vtrack_url : location.protocol + '//static.sensorsdata.cn/sdk/' + sd.lib_version + '/vtrack.min.js'
-          });
-        },
-        messageListener: function (event) {
-          if (event.data.source !== 'sa-fe') {
-            return false;
-          }
-          if (event.data.type === 'v-track-mode') {
-            if (event.data.data && event.data.data.isVtrack) {
-              if (_.sessionStorage.isSupport()) {
-                sessionStorage.setItem('sensors-visual-mode', 'true');
-              }
-              if (event.data.data.userURL && location.search.match(/sa-visual-mode=true/)) {
-                window.location.href = event.data.data.userURL;
-              } else {
-                vtrackMode.loadVtrack();
-              }
-            }
-            window.removeEventListener('message', vtrackMode.messageListener, false);
-          }
-        },
-        removeMessageHandle: function () {
-          if (window.removeEventListener) {
-            window.removeEventListener('message', vtrackMode.messageListener, false);
-          }
-        },
-        verifyVtrackMode: function () {
-          if (window.addEventListener) {
-            window.addEventListener('message', vtrackMode.messageListener, false);
-          }
-          vtrackMode.postMessage();
-        },
-        postMessage: function () {
-          if (window.parent && window.parent.postMessage) {
-            window.parent.postMessage(
-              {
-                source: 'sa-web-sdk',
-                type: 'v-is-vtrack',
-                data: {
-                  sdkversion: '1.16.7'
-                }
-              },
-              '*'
-            );
-          }
-        },
-        notifyUser: function () {
-          var fn = function (event) {
-            if (event.data.source !== 'sa-fe') {
-              return false;
-            }
-            if (event.data.type === 'v-track-mode') {
-              if (event.data.data && event.data.data.isVtrack) {
-                alert('当前版本不支持，请升级部署神策数据治理');
-              }
-              window.removeEventListener('message', fn, false);
-            }
-          };
-          if (window.addEventListener) {
-            window.addEventListener('message', fn, false);
-          }
-          vtrackMode.postMessage();
-        }
-      };
-
-      var defineMode = function (isLoaded) {
-        var bridgeObj = sd.bridge.initDefineBridgeInfo();
-        function getAndPostDebugInfo() {
-          var arr = [];
-          if (!bridgeObj.touch_app_bridge) {
-            //App 没有开启打通
-            arr.push(sd.debug.defineMode('1'));
-          }
-          if (!_.isObject(sd.para.app_js_bridge)) {
-            //H5 没有开启打通
-            arr.push(sd.debug.defineMode('2'));
-            //H5 没有开启打通verify_success也会是fail ，为了防止干扰defineMode(4)，这里置为false
-            bridgeObj.verify_success = false;
-          }
-          if (!(_.isObject(sd.para.heatmap) && sd.para.heatmap.clickmap == 'default')) {
-            //H5 没有开启全埋点
-            arr.push(sd.debug.defineMode('3'));
-          }
-          if (bridgeObj.verify_success === 'fail') {
-            //校验失败
-            arr.push(sd.debug.defineMode('4'));
-          }
-          var data = {
-            callType: 'app_alert',
-            data: arr
-          };
-
-          if (SensorsData_App_Visual_Bridge && SensorsData_App_Visual_Bridge.sensorsdata_visualized_alert_info) {
-            SensorsData_App_Visual_Bridge.sensorsdata_visualized_alert_info(JSON.stringify(data));
-          } else if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage) {
-            window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage(JSON.stringify(data));
-          }
-        }
-
-        if (_.isObject(window.SensorsData_App_Visual_Bridge) && window.SensorsData_App_Visual_Bridge.sensorsdata_visualized_mode && (window.SensorsData_App_Visual_Bridge.sensorsdata_visualized_mode === true || window.SensorsData_App_Visual_Bridge.sensorsdata_visualized_mode())) {
-          if (_.isObject(sd.para.heatmap) && sd.para.heatmap.clickmap == 'default') {
-            if (_.isObject(sd.para.app_js_bridge) && bridgeObj.verify_success === 'success') {
-              if (!isLoaded) {
-                var protocol = location.protocol;
-                var protocolArr = ['http:', 'https:'];
-                protocol = _.indexOf(protocolArr, protocol) > -1 ? protocol : 'https:';
-                _.loadScript({
-                  success: function () {
-                    setTimeout(function () {
-                      if (typeof sa_jssdk_app_define_mode !== 'undefined') {
-                        sa_jssdk_app_define_mode(sd, isLoaded);
-                      }
-                    }, 0);
-                  },
-                  error: function () {},
-                  type: 'js',
-                  url: protocol + '//static.sensorsdata.cn/sdk/' + sd.lib_version + '/vapph5define.min.js'
-                });
-              } else {
-                sa_jssdk_app_define_mode(sd, isLoaded);
-              }
-            } else {
-              //打通失败弹框debug信息传给App
-              getAndPostDebugInfo();
-            }
-          } else {
-            //未开启全埋点弹框
-            getAndPostDebugInfo();
-          }
-        }
-      };
-
-      function trackMode() {
-        sd.readyState.setState(3);
-
-        var visualizedBridge = new sd.JSBridge({
-          type: 'visualized',
-          app_call_js: function () {
-            if (typeof sa_jssdk_app_define_mode !== 'undefined') {
-              defineMode(true);
-            } else {
-              defineMode(false);
-            }
-          }
-        });
-
-        defineMode(false);
-
-        sd.bridge.app_js_bridge_v1();
-        // 初始化referrer等页面属性 1.6
-        _.info.initPage();
-
-        if (sd.para.is_track_single_page) {
-          _.addSinglePageEvent(function (last_url) {
-            var sendData = function (extraData) {
-              extraData = extraData || {};
-              if (last_url !== location.href) {
-                _.info.pageProp.referrer = last_url;
-                last_url = _.isDecodeURI(sd.para.url_is_decode, last_url);
-                sd.quick('autoTrack', _.extend({ $url: _.isDecodeURI(sd.para.url_is_decode, location.href), $referrer: last_url }, extraData));
-              }
-            };
-            if (typeof sd.para.is_track_single_page === 'boolean') {
-              sendData();
-            } else if (typeof sd.para.is_track_single_page === 'function') {
-              var returnValue = sd.para.is_track_single_page();
-              if (_.isObject(returnValue)) {
-                sendData(returnValue);
-              } else if (returnValue === true) {
-                sendData();
-              }
-            }
-          });
-        }
-        // 支持localstorage且开启了batch_send
-        if (sd.para.batch_send) {
-          _.addEvent(window, 'onpagehide' in window ? 'pagehide' : 'unload', function (e) {
-            sd.batchSend.clearPendingStatus();
-          });
-          sd.batchSend.batchInterval();
-        }
-        // 初始化distinct_id
-        sd.store.init();
-
-        sd.readyState.setState(4);
-        //    sd.noticePluginIsReady();
-        // 发送数据
-        if (sd._q && _.isArray(sd._q) && sd._q.length > 0) {
-          _.each(sd._q, function (content) {
-            sd[content[0]].apply(sd, Array.prototype.slice.call(content[1]));
-          });
-        }
-
-        //进入热力图采集模式
-        if (_.isObject(sd.para.heatmap)) {
-          heatmap.initHeatmap();
-          heatmap.initScrollmap();
-        }
-      }
-
-      // 通过检查参数，判断是否是点击图模式
-      if (heatmapMode.isSeachHasKeyword()) {
-        heatmapMode.hasKeywordHandle();
-      } else if (window.parent !== self && vtrackMode.isSearchHasKeyword()) {
-        vtrackMode.verifyVtrackMode();
-      } else if (heatmapMode.isStorageHasKeyword()) {
-        heatmapMode.storageHasKeywordHandle();
-      } else if (window.parent !== self && vtrackMode.isStorageHasKeyword()) {
-        vtrackMode.verifyVtrackMode();
-      } else {
-        trackMode();
-        vtrackMode.notifyUser();
-      }
-    };
-
-    /*
-数据处理和发送的流程
-数据批量发送
-*/
 
     function BatchSend() {
-      //正在发送中的数据，如果后续还有，就不发送
       this.sendingData = 0;
-      this.sendingItemKeys = [];
     }
 
     BatchSend.prototype = {
@@ -4314,11 +2955,6 @@ sd的各个方法，包含sdk的一些基本功能
           if (data.type === 'track_signup' || data.event === '$pageview') {
             this.sendStrategy();
           }
-        }
-      },
-      clearPendingStatus: function () {
-        if (this.sendingItemKeys.length) {
-          this.removePendingItems(this.sendingItemKeys);
         }
       },
       remove: function (keys) {
@@ -4334,13 +2970,7 @@ sd的各个方法，包含sdk的一些基本功能
       },
       send: function (data) {
         var me = this;
-        var server_url;
-        if ((_.isString(sd.para.server_url) && sd.para.server_url !== '') || (_.isArray(sd.para.server_url) && sd.para.server_url.length)) {
-          server_url = _.isArray(sd.para.server_url) ? sd.para.server_url[0] : sd.para.server_url;
-        } else {
-          sd.log('当前 server_url 为空或不正确，只在控制台打印日志，network 中不会发数据，请配置正确的 server_url！');
-          return;
-        }
+        var server_url = _.isArray(sd.para.server_url) ? sd.para.server_url[0] : sd.para.server_url;
         _.ajax({
           url: server_url,
           type: 'POST',
@@ -4350,75 +2980,38 @@ sd的各个方法，包含sdk的一些基本功能
           cors: true,
           success: function () {
             me.remove(data.keys);
-            me.removePendingItems(data.keys);
           },
           error: function () {
             if (me.sendingData > 0) {
               --me.sendingData;
             }
-            me.removePendingItems(data.keys);
           }
         });
       },
-      appendPendingItems: function (newKeys) {
-        if (_.isArray(newKeys) === false) {
-          return;
-        }
-        this.sendingItemKeys = _.unique(this.sendingItemKeys.concat(newKeys));
-        try {
-          var existingItems = this.getPendingItems();
-          var newItems = _.unique(existingItems.concat(newKeys));
-          localStorage.setItem('sawebjssdk-sendingitems', JSON.stringify(newItems));
-        } catch (e) {}
-      },
-      removePendingItems: function (keys) {
-        if (_.isArray(keys) === false) {
-          return;
-        }
-        if (this.sendingItemKeys.length) {
-          this.sendingItemKeys = _.filter(this.sendingItemKeys, function (item) {
-            return _.indexOf(keys, item) === -1;
-          });
-        }
-        try {
-          var existingItems = this.getPendingItems();
-          var newItems = _.filter(existingItems, function (item) {
-            return _.indexOf(keys, item) === -1;
-          });
-          localStorage.setItem('sawebjssdk-sendingitems', JSON.stringify(newItems));
-        } catch (e) {}
-      },
-      getPendingItems: function () {
-        var items = [];
-        try {
-          var value = localStorage.getItem('sawebjssdk-sendingitems');
-          if (value) {
-            items = JSON.parse(value);
-          }
-        } catch (e) {}
-        return items;
-      },
       sendPrepare: function (data) {
-        this.appendPendingItems(data.keys);
         var arr = data.vals;
+        var maxLen = sd.para.batch_send.one_send_max_length;
         var arrLen = arr.length;
         if (arrLen > 0) {
-          this.send({
-            keys: data.keys,
-            vals: arr
-          });
+          if (arrLen <= maxLen) {
+            this.send({
+              keys: data.keys,
+              vals: arr
+            });
+          } else {
+            for (var i = 0; i * maxLen < arrLen; i++) {
+              this.send({
+                keys: data.keys.splice(0, maxLen),
+                vals: arr.splice(0, maxLen)
+              });
+            }
+          }
         }
       },
       sendStrategy: function () {
-        if (document.hasFocus() === false) {
-          //sd.log('sendStrategy call, but this tab/window is inactive');
-          return false;
-        }
-        //定时发送和次数发送，都存在页面打开没及时发送的问题，所以优化如果是profile和pageview则触发发送
-        //次数发送存在不满足次数，永远发送不了的问题，所以选择定时发送
         var data = this.readStore();
         if (data.keys.length > 0 && this.sendingData === 0) {
-          this.sendingData = 1;
+          this.sendingData = Math.ceil(data.vals.length / sd.para.batch_send.one_send_max_length);
           this.sendPrepare(data);
         }
       },
@@ -4435,13 +3028,9 @@ sd的各个方法，包含sdk的一些基本功能
         var val = null;
         var now = new Date().getTime();
         var len = localStorage.length;
-        var pendingItems = this.getPendingItems();
         for (var i = 0; i < len; i++) {
           var key = localStorage.key(i);
           if (key.indexOf('sawebjssdk-') === 0 && /^sawebjssdk\-\d+$/.test(key)) {
-            if (pendingItems.length && _.indexOf(pendingItems, key) > -1) {
-              continue;
-            }
             val = localStorage.getItem(key);
             if (val) {
               val = _.safeJSONParse(val);
@@ -4472,7 +3061,6 @@ sd的各个方法，包含sdk的一些基本功能
 
     sd.batchSend = new BatchSend();
 
-    // 各种发送方式
     var dataSend = {};
 
     dataSend.getSendUrl = function (url, data) {
@@ -4494,13 +3082,12 @@ sd的各个方法，包含sdk的一些基本功能
     dataSend.getInstance = function (data) {
       var sendType = this.getSendType(data);
       var obj = new this[sendType](data);
-      // 代理模式，重置原方法，统一设置超时
       var start = obj.start;
       obj.start = function () {
         if (_.isObject(sd.para.is_debug) && sd.para.is_debug.storage && sd.store.requests) {
           sd.store.requests.push({
             name: this.server_url,
-            initiatorType: this.img ? 'img' : 'xmlhttprequest', // todo: beacon
+            initiatorType: this.img ? 'img' : 'xmlhttprequest',
             entryType: 'resource',
             requestData: this.data
           });
@@ -4540,35 +3127,6 @@ sd的各个方法，包含sdk的一些基本功能
       return obj;
     };
 
-    dataSend.getRealtimeInstance = function (data) {
-      var sendType = this.getSendType(data);
-      var obj = new this[sendType](data);
-      obj.defaultData = data;
-      // 代理模式，重置原方法，统一设置超时
-      var start = obj.start;
-      obj.start = function () {
-        var me = this;
-        start.apply(this, arguments);
-        setTimeout(function () {
-          me.isEnd(true);
-        }, sd.para.callback_timeout);
-      };
-      obj.end = function () {
-        this.callback && this.callback();
-        var self = this;
-        setTimeout(function () {
-          self.lastClear && self.lastClear();
-        }, sd.para.datasend_timeout - sd.para.callback_timeout);
-      };
-      obj.isEnd = function (isDelay) {
-        if (!this.received) {
-          this.received = true;
-          this.end();
-        }
-      };
-      return obj;
-    };
-
     dataSend.getSendType = function (data) {
       var supportedSendTypes = ['image', 'ajax', 'beacon'];
       var sendType = supportedSendTypes[0];
@@ -4579,7 +3137,7 @@ sd的各个方法，包含sdk的一些基本功能
         sendType = sd.para.send_type;
       }
 
-      if (sendType === 'beacon' && _.isSupportBeaconSend() === false) {
+      if (sendType === 'beacon' && typeof navigator.sendBeacon !== 'function') {
         sendType = 'image';
       }
 
@@ -4595,7 +3153,6 @@ sd的各个方法，包含sdk的一些基本功能
       this.img = document.createElement('img');
       this.img.width = 1;
       this.img.height = 1;
-      // 如果后端没有配置 access-allow-origin 会导致请求错误
       if (sd.para.img_use_crossorigin) {
         this.img.crossOrigin = 'anonymous';
       }
@@ -4663,28 +3220,21 @@ sd的各个方法，包含sdk的一些基本功能
     dataSend.beacon.prototype.start = function () {
       var me = this;
       if (typeof navigator === 'object' && typeof navigator.sendBeacon === 'function') {
-        if (!navigator.sendBeacon(this.server_url, this.data)) {
-          this.defaultData.config.send_type = 'image';
-          sendState.realtimeSend(this.defaultData);
-        }
+        navigator.sendBeacon(this.server_url, this.data);
       }
       setTimeout(function () {
         me.isEnd();
       }, 40);
     };
 
-    // 数据发送流程控制
-
     var sendState = {};
     sd.sendState = sendState;
     sd.events = new _.eventEmitter();
-    // 发送队列
     sendState.queue = _.autoExeQueue();
 
     sendState.requestData = null;
 
     sendState.getSendCall = function (data, config, callback) {
-      // 点击图渲染模式不发数据
       if (sd.is_heatmap_render_mode) {
         return false;
       }
@@ -4702,7 +3252,6 @@ sd的各个方法，包含sdk的一些基本功能
       var originData = data;
 
       data = JSON.stringify(data);
-      //sd.log(originData);
 
       this.requestData = {
         data: originData,
@@ -4712,28 +3261,151 @@ sd的各个方法，包含sdk的一些基本功能
 
       sd.events.tempAdd('send', originData);
 
-      if (!sd.para.app_js_bridge && sd.para.batch_send && localStorage.length < 200) {
+      if (!sd.para.use_app_track && sd.para.batch_send && localStorage.length < 200) {
         sd.log(originData);
         sd.batchSend.add(this.requestData.data);
         return false;
       }
 
-      sd.bridge.dataSend(originData, this, callback);
-
+      if (sd.para.use_app_track === true || sd.para.use_app_track === 'only') {
+        if (typeof SensorsData_APP_JS_Bridge === 'object' && (SensorsData_APP_JS_Bridge.sensorsdata_verify || SensorsData_APP_JS_Bridge.sensorsdata_track)) {
+          if (SensorsData_APP_JS_Bridge.sensorsdata_verify) {
+            if (
+              !SensorsData_APP_JS_Bridge.sensorsdata_verify(
+                JSON.stringify(
+                  _.extend(
+                    {
+                      server_url: sd.para.server_url
+                    },
+                    originData
+                  )
+                )
+              )
+            ) {
+              if (sd.para.use_app_track_is_send) {
+                sd.debug.apph5({
+                  data: originData,
+                  step: '3.1',
+                  output: 'all'
+                });
+                this.prepareServerUrl();
+              }
+            } else {
+              typeof callback === 'function' && callback();
+            }
+          } else {
+            SensorsData_APP_JS_Bridge.sensorsdata_track(
+              JSON.stringify(
+                _.extend(
+                  {
+                    server_url: sd.para.server_url
+                  },
+                  originData
+                )
+              )
+            );
+            typeof callback === 'function' && callback();
+          }
+        } else if ((/sensors-verify/.test(navigator.userAgent) || /sa-sdk-ios/.test(navigator.userAgent)) && !window.MSStream) {
+          var iframe = null;
+          if (/sensors-verify/.test(navigator.userAgent)) {
+            var match = navigator.userAgent.match(/sensors-verify\/([^\s]+)/);
+            if (match && match[0] && typeof match[1] === 'string' && match[1].split('?').length === 2) {
+              match = match[1].split('?');
+              var hostname = null;
+              var project = null;
+              try {
+                hostname = _.URL(sd.para.server_url).hostname;
+                project = _.URL(sd.para.server_url).searchParams.get('project') || 'default';
+              } catch (e) {
+                sd.log(e);
+              }
+              if (hostname && hostname === match[0] && project && project === match[1]) {
+                iframe = document.createElement('iframe');
+                iframe.setAttribute(
+                  'src',
+                  'sensorsanalytics://trackEvent?event=' +
+                    encodeURIComponent(
+                      JSON.stringify(
+                        _.extend(
+                          {
+                            server_url: sd.para.server_url
+                          },
+                          originData
+                        )
+                      )
+                    )
+                );
+                document.documentElement.appendChild(iframe);
+                iframe.parentNode.removeChild(iframe);
+                iframe = null;
+                typeof callback === 'function' && callback();
+              } else {
+                if (sd.para.use_app_track_is_send) {
+                  sd.debug.apph5({
+                    data: originData,
+                    step: '3.2',
+                    output: 'all'
+                  });
+                  this.prepareServerUrl();
+                }
+              }
+            }
+          } else {
+            iframe = document.createElement('iframe');
+            iframe.setAttribute(
+              'src',
+              'sensorsanalytics://trackEvent?event=' +
+                encodeURIComponent(
+                  JSON.stringify(
+                    _.extend(
+                      {
+                        server_url: sd.para.server_url
+                      },
+                      originData
+                    )
+                  )
+                )
+            );
+            document.documentElement.appendChild(iframe);
+            iframe.parentNode.removeChild(iframe);
+            iframe = null;
+            typeof callback === 'function' && callback();
+          }
+        } else {
+          if (sd.para.use_app_track === true && sd.para.use_app_track_is_send === true) {
+            sd.debug.apph5({
+              data: originData,
+              step: '2',
+              output: 'all'
+            });
+            this.prepareServerUrl();
+          }
+        }
+      } else if (sd.para.use_app_track === 'mui') {
+        if (_.isObject(window.plus) && window.plus.SDAnalytics && window.plus.SDAnalytics.trackH5Event) {
+          window.plus.SDAnalytics.trackH5Event(data);
+        }
+      } else {
+        sd.debug.apph5({
+          data: originData,
+          step: '1',
+          output: 'code'
+        });
+        this.prepareServerUrl();
+      }
       sd.log(originData);
     };
 
     sendState.prepareServerUrl = function () {
       if (typeof this.requestData.config === 'object' && this.requestData.config.server_url) {
         this.sendCall(this.requestData.config.server_url, this.requestData.callback);
-      } else if (_.isArray(sd.para.server_url) && sd.para.server_url.length) {
+      } else if (_.isArray(sd.para.server_url)) {
         for (var i = 0; i < sd.para.server_url.length; i++) {
           this.sendCall(sd.para.server_url[i]);
         }
-      } else if (typeof sd.para.server_url === 'string' && sd.para.server_url !== '') {
-        this.sendCall(sd.para.server_url, this.requestData.callback);
       } else {
-        sd.log('当前 server_url 为空或不正确，只在控制台打印日志，network 中不会发数据，请配置正确的 server_url！');
+        this.sendCall(sd.para.server_url, this.requestData.callback);
       }
     };
 
@@ -4749,11 +3421,7 @@ sd的各个方法，包含sdk的一些基本功能
         data = JSON.stringify(data);
         sd.para.jsapp.setData(data);
       } else {
-        if (sd.para.use_client_time) {
-          this.realtimeSend(data);
-        } else {
-          this.pushSend(data);
-        }
+        this.pushSend(data);
       }
     };
 
@@ -4766,16 +3434,10 @@ sd的各个方法，包含sdk的一些基本功能
       this.queue.enqueue(instance);
     };
 
-    sendState.realtimeSend = function (data) {
-      var instance = dataSend.getRealtimeInstance(data);
-      instance.start();
-    };
-
     var saEvent = {};
     sd.saEvent = saEvent;
 
     saEvent.checkOption = {
-      // event和property里的key要是一个合法的变量名，由大小写字母、数字、下划线和$组成，并且首字符不能是数字。
       regChecks: {
         regName: /^((?!^distinct_id$|^original_id$|^time$|^properties$|^id$|^first_id$|^second_id$|^users$|^events$|^event$|^user_id$|^date$|^datetime$)[a-zA-Z_$][a-zA-Z\d_$]{0,99})$/i
       },
@@ -4792,14 +3454,13 @@ sd的各个方法，包含sdk的一些基本功能
       check: function (a, b) {
         if (typeof this[a] === 'string') {
           return this[this[a]](b);
-        } else if (_.isFunction(this[a])) {
+        } else {
           return this[a](b);
         }
       },
       str: function (s) {
         if (!_.isString(s)) {
           sd.log('请检查参数格式,必须是字符串');
-          //return false;
           return true;
         } else {
           return true;
@@ -4813,13 +3474,11 @@ sd的各个方法，包含sdk的一些基本功能
               return true;
             } else {
               sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
-              //return false;
               return true;
             }
           } else {
             sd.log('properties可以没有，但有的话必须是对象');
             return true;
-            //return false;
           }
         } else {
           return true;
@@ -4830,22 +3489,18 @@ sd的各个方法，包含sdk的一些基本功能
         if (p === undefined || !_.isObject(p) || _.isEmptyObject(p)) {
           sd.log('properties必须是对象且有值');
           return true;
-          //return false;
         } else {
           if (this.checkPropertiesKey(p)) {
             return true;
           } else {
             sd.log('properties 里的自定义属性名需要是合法的变量名，不能以数字开头，且只包含：大小写字母、数字、下划线，自定义属性不能以 $ 开头');
             return true;
-            //return false;
           }
         }
       },
-      // event要检查name
       event: function (s) {
         if (!_.isString(s) || !this['regChecks']['regName'].test(s)) {
           sd.log('请检查参数格式，eventName 必须是字符串，且需是合法的变量名，即不能以数字开头，且只包含：大小写字母、数字、下划线和 $,其中以 $ 开头的表明是系统的保留字段，自定义事件名请不要以 $ 开头');
-          //return false;
           return true;
         } else {
           return true;
@@ -4866,7 +3521,7 @@ sd的各个方法，包含sdk的一些基本功能
     saEvent.check = function (p) {
       var flag = true;
       for (var i in p) {
-        if (Object.prototype.hasOwnProperty.call(p, i) && !this.checkOption.check(i, p[i])) {
+        if (!this.checkOption.check(i, p[i])) {
           return false;
         }
       }
@@ -4875,7 +3530,6 @@ sd的各个方法，包含sdk的一些基本功能
 
     saEvent.send = function (p, callback) {
       var data = {
-        identities: {},
         distinct_id: store.getDistinctId(),
         lib: {
           $lib: 'js',
@@ -4885,41 +3539,20 @@ sd的各个方法，包含sdk的一些基本功能
         properties: {}
       };
 
-      if (_.isObject(p) && _.isObject(p.identities) && !_.isEmptyObject(p.identities)) {
-        _.extend(data.identities, p.identities);
-      } else {
-        _.extend(data.identities, store._state.identities);
-      }
-
       if (_.isObject(p) && _.isObject(p.properties) && !_.isEmptyObject(p.properties) && p.properties.$lib_detail) {
         data.lib.$lib_detail = p.properties.$lib_detail;
         delete p.properties.$lib_detail;
       }
-      //debugger;
       _.extend(data, sd.store.getUnionId(), p);
 
-      // 合并properties里的属性
       if (_.isObject(p.properties) && !_.isEmptyObject(p.properties)) {
         _.extend(data.properties, p.properties);
       }
-      /*
-  // 合并lib里的属性
-  if (_.isObject(callback)) {
-    _.extend(data.lib, callback);
-  }
-  */
 
-      // profile时不传公用属性
       if (!p.type || p.type.slice(0, 7) !== 'profile') {
-        // 传入的属性 > 当前页面的属性 > session的属性 > cookie的属性 > 预定义属性
-
         data.properties = _.extend({}, _.info.properties(), store.getProps(), store.getSessionProps(), _.info.currentProps, data.properties);
         if (sd.para.preset_properties.latest_referrer && !_.isString(data.properties.$latest_referrer)) {
           data.properties.$latest_referrer = '取值异常';
-          // TODO
-          // Do NOT send data here, it will cause too much recursion.
-          //_.jssdkDebug(data.properties,store.getProps());
-          //sd.debug.jssdkDebug(data.properties, store.getProps());
         }
         if (sd.para.preset_properties.latest_search_keyword && !_.isString(data.properties.$latest_search_keyword)) {
           data.properties.$latest_search_keyword = '取值异常';
@@ -4930,21 +3563,8 @@ sd的各个方法，包含sdk的一些基本功能
         if (sd.para.preset_properties.latest_landing_page && !_.isString(data.properties.$latest_landing_page)) {
           data.properties.$latest_landing_page = '取值异常';
         }
-        if (sd.para.preset_properties.latest_wx_ad_click_id === 'not_collect') {
-          delete data.properties._latest_wx_ad_click_id;
-          delete data.properties._latest_wx_ad_hash_key;
-          delete data.properties._latest_wx_ad_callbacks;
-        } else if (sd.para.preset_properties.latest_wx_ad_click_id && !_.isString(data.properties._latest_wx_ad_click_id)) {
-          data.properties._latest_wx_ad_click_id = '取值异常';
-          data.properties._latest_wx_ad_hash_key = '取值异常';
-          data.properties._latest_wx_ad_callbacks = '取值异常';
-        }
-        if (_.isString(data.properties._latest_wx_ad_click_id)) {
-          data.properties.$url = _.isDecodeURI(sd.para.url_is_decode, window.location.href);
-        }
       }
 
-      // 如果$time是传入的就用，否则使用服务端时间
       if (data.properties.$time && _.isDate(data.properties.$time)) {
         data.time = data.properties.$time * 1;
         delete data.properties.$time;
@@ -4953,19 +3573,15 @@ sd的各个方法，包含sdk的一些基本功能
           data.time = new Date() * 1;
         }
       }
-      // Parse super properties that added by registerPage()
       _.parseSuperProperties(data.properties);
 
       _.filterReservedProperties(data.properties);
       _.searchObjDate(data);
       _.searchObjString(data);
-      // 兼容灼洲app端做的$project和$token而加的代码
       _.searchZZAppStyle(data);
 
-      //去掉data里的$option
       var data_config = _.searchConfigData(data.properties);
 
-      //判断是否要给数据增加新用户属性
       saNewUser.checkIsAddSign(data);
       saNewUser.checkIsFirstTime(data);
 
@@ -4980,9 +3596,8 @@ sd的各个方法，包含sdk的一些基本功能
       }
     };
 
-    // 发送debug数据请求
     saEvent.debugPath = function (data, callback) {
-      var _data = data; //存数据
+      var _data = data;
       var url = '';
       if (sd.para.debug_mode_url.indexOf('?') !== -1) {
         url = sd.para.debug_mode_url + '&data=' + encodeURIComponent(_.base64Encode(data));
@@ -4994,53 +3609,22 @@ sd的各个方法，包含sdk的一些基本功能
         url: url,
         type: 'GET',
         cors: true,
-        header: { 'Dry-Run': String(sd.para.debug_mode_upload) },
+        header: {
+          'Dry-Run': String(sd.para.debug_mode_upload)
+        },
         success: function (data) {
-          // debug 模式下 提示框
           _.isEmptyObject(data) === true ? alert('debug数据发送成功' + _data) : alert('debug失败 错误原因' + JSON.stringify(data));
         }
       });
     };
 
-    /*
-cookie的数据存储
-初始化cookie里的distinct_id
-*/
-
     var store = (sd.store = {
-      identities: {
-        set: function (name, id) {
-          var identities = {};
-          switch (name) {
-            case 'login':
-              identities[sd.para.login_id_key] = id;
-              identities.$identity_cookie_id = sd.store._state.identities.$identity_cookie_id;
-              break;
-            case 'logout':
-              identities.$identity_cookie_id = sd.store._state.identities.$identity_cookie_id;
-              break;
-            case 'identify':
-              identities = JSON.parse(JSON.stringify(sd.store._state.identities));
-              identities.$identity_anonymous_id = id;
-              break;
-            default:
-              break;
-          }
-          sd.store._state.identities = identities;
-          sd.store.save();
-        }
-      },
       requests: [],
       _sessionState: {},
       _state: {
         distinct_id: '',
         first_id: '',
-        props: {},
-        identities: {
-          // $identity_cookie_id: '',
-          // $login_id: '',
-          // $identity_anonymous_id: '',
-        }
+        props: {}
       },
       getProps: function () {
         return this._state.props || {};
@@ -5051,11 +3635,10 @@ cookie的数据存储
       getDistinctId: function () {
         return this._state._distinct_id || this._state.distinct_id;
       },
-      getUnionId: function (state) {
+      getUnionId: function () {
         var obj = {};
-        state = state || this._state;
-        var firstId = state._first_id || state.first_id,
-          distinct_id = state._distinct_id || state.distinct_id;
+        var firstId = this._state._first_id || this._state.first_id,
+          distinct_id = this._state._distinct_id || this._state.distinct_id;
         if (firstId && distinct_id) {
           obj.login_id = distinct_id;
           obj.anonymous_id = firstId;
@@ -5066,6 +3649,29 @@ cookie的数据存储
       },
       getFirstId: function () {
         return this._state._first_id || this._state.first_id;
+      },
+      toState: function (ds) {
+        var state = null;
+        if (ds != null && _.isJSONString(ds)) {
+          state = JSON.parse(ds);
+          this._state = _.extend(state);
+          if (state.distinct_id) {
+            if (typeof state.props === 'object') {
+              for (var key in state.props) {
+                if (typeof state.props[key] === 'string') {
+                  state.props[key] = state.props[key].slice(0, sd.para.max_referrer_string_length);
+                }
+              }
+              this.save();
+            }
+          } else {
+            this.set('distinct_id', _.UUID());
+            sd.debug.distinct_id('1', ds);
+          }
+        } else {
+          this.set('distinct_id', _.UUID());
+          sd.debug.distinct_id('2', ds);
+        }
       },
       initSessionState: function () {
         var ds = _.cookie.get('sensorsdata2015session');
@@ -5086,7 +3692,6 @@ cookie的数据存储
           sd.events.tempAdd('changeDistinctId', value);
         }
         this._state[name] = value;
-        // 如果set('first_id') 或者 set('distinct_id')，删除对应的临时属性
         if (name === 'first_id') {
           delete this._state._first_id;
         } else if (name === 'distinct_id') {
@@ -5094,9 +3699,7 @@ cookie的数据存储
         }
         this.save();
       },
-      // 针对当前页面修改
       change: function (name, value) {
-        // 为临时属性名增加前缀 _ (下划线)
         this._state['_' + name] = value;
       },
       setSessionProps: function (newp) {
@@ -5151,22 +3754,10 @@ cookie的数据存储
         _.cookie.set('sensorsdata2015session', JSON.stringify(this._sessionState), 0);
       },
       save: function () {
-        // 深拷贝避免修改原对象
         var copyState = JSON.parse(JSON.stringify(this._state));
-        // 删除临时属性避免写入cookie
         delete copyState._first_id;
         delete copyState._distinct_id;
-
-        if (copyState.identities) {
-          copyState.identities = _.rot13obfs(JSON.stringify(copyState.identities));
-        }
-
-        var stateStr = JSON.stringify(copyState);
-        if (sd.para.enc_cookie) {
-          stateStr = _.cookie.encrypt(stateStr);
-        }
-
-        _.cookie.set(this.getCookieName(), stateStr, 73000, sd.para.cross_subdomain);
+        _.cookie.set(this.getCookieName(), JSON.stringify(copyState), 73000, sd.para.cross_subdomain);
       },
       getCookieName: function () {
         var sub = '';
@@ -5187,118 +3778,28 @@ cookie的数据存储
         return sub;
       },
       init: function () {
-        //兼容3.0的初始化用户方案
-        function compatibleWith3(state) {
-          if (state.identities) {
-            state.identities = JSON.parse(_.rot13defs(state.identities));
-          }
-
-          var unionId = store.getUnionId(state);
-
-          if (state.identities && _.isObject(state.identities) && !_.isEmptyObject(state.identities)) {
-            if (state.identities.$identity_anonymous_id && state.identities.$identity_anonymous_id !== unionId.anonymous_id) {
-              state.identities.$identity_anonymous_id = unionId.anonymous_id;
-            }
-          } else {
-            // identities 不存在的话
-            state.identities = {};
-            state.identities.$identity_anonymous_id = unionId.anonymous_id;
-            state.identities.$identity_cookie_id = _.UUID();
-          }
-
-          // 已经保证 state.identites 是对象且存在
-
-          // 本地存在登陆
-          //初始化 state.history_login_id
-          state.history_login_id = state.history_login_id || {};
-          var history_login_id = state.history_login_id;
-          var old_login_id_value = history_login_id.value;
-          var old_login_id_name = history_login_id.name;
-
-          if (unionId.login_id) {
-            // 处理存在老的 3.0 登录 ID 逻辑，及不存在登录 ID 的情况
-            if (old_login_id_name && state.identities.hasOwnProperty(old_login_id_name)) {
-              if (state.identities[old_login_id_name] !== unionId.login_id) {
-                state.identities[old_login_id_name] = unionId.login_id;
-                for (var identitiesprop in state.identities) {
-                  if (state.identities.hasOwnProperty(identitiesprop)) {
-                    if (identitiesprop !== '$identity_cookie_id' && identitiesprop !== old_login_id_name) {
-                      delete state.identities[identitiesprop];
-                    }
-                  }
-                }
-                state.history_login_id.value = unionId.login_id;
-              }
-            } else {
-              state.identities[sd.para.login_id_key] = unionId.login_id;
-              for (var identitiesprop in state.identities) {
-                if (state.identities.hasOwnProperty(identitiesprop)) {
-                  if (identitiesprop !== '$identity_cookie_id' && identitiesprop !== sd.para.login_id_key) {
-                    delete state.identities[identitiesprop];
-                  }
-                }
-              }
-              state.history_login_id = {
-                name: sd.para.login_id_key,
-                value: unionId.login_id
-              };
-            }
-          } else {
-            // 处理 3.0 降到 2.0 后调用 logout 但是 3.0 的登录 ID 依旧存在的情况
-            if (state.identities.hasOwnProperty('$identity_login_id') || state.identities.hasOwnProperty(old_login_id_name)) {
-              for (var identitiesprop in state.identities) {
-                if (state.identities.hasOwnProperty(identitiesprop)) {
-                  if (identitiesprop !== '$identity_cookie_id' && identitiesprop !== '$identity_anonymous_id') {
-                    delete state.identities[identitiesprop];
-                  }
-                }
-              }
-            }
-            state.history_login_id = {
-              name: '',
-              value: ''
-            };
-          }
-
-          return state;
-        }
-
-        // cookie 存在异常，需要重新生成id
-        function cookieExistExpection() {
-          var uuid = _.UUID();
-          sd.store.set('distinct_id', uuid);
-          sd.store.set('identities', { $identity_cookie_id: uuid });
-          sd.store.set('history_login_id', {
-            name: '',
-            value: ''
-          });
-        }
         this.initSessionState();
         var uuid = _.UUID();
         var cross = _.cookie.get(this.getCookieName());
-        // 解析加密的cookie
-        cross = _.cookie.resolveValue(cross);
-
-        var cookieJSON = _.safeJSONParse(cross);
-        if (cross === null || !_.isJSONString(cross) || !_.isObject(cookieJSON) || (_.isObject(cookieJSON) && !cookieJSON.distinct_id)) {
-          // null肯定是首次，非null，看是否有distinct_id
+        if (cross === null) {
           sd.is_first_visitor = true;
-          cookieExistExpection();
+
+          this.set('distinct_id', uuid);
         } else {
-          // corss必须是可以JSON的且是对象
-          // 兼容3.0的2.0+3.0初始化逻辑
-          sd.store._state = _.extend(compatibleWith3(cookieJSON));
-          sd.store.save();
+          if (!_.isJSONString(cross) || !JSON.parse(cross).distinct_id) {
+            sd.is_first_visitor = true;
+          }
+
+          this.toState(cross);
         }
-        // 如果没有跨域的cookie，且没有当前域cookie，那当前域的cookie和跨域cookie一致
+
         saNewUser.setDeviceId(uuid);
-        //判断新用户
+
         saNewUser.storeInitCheck();
         saNewUser.checkIsFirstLatest();
       }
     });
 
-    // 检查是否是新用户（第一次种cookie，且在8个小时内的）
     var saNewUser = {
       checkIsAddSign: function (data) {
         if (data.type === 'track') {
@@ -5321,11 +3822,8 @@ cookie的数据存储
         }
       },
       setDeviceId: function (uuid) {
-        // deviceid必须跨子域
         var device_id = null;
         var ds = _.cookie.get('sensorsdata2015jssdkcross');
-        ds = _.cookie.resolveValue(ds);
-
         var state = {};
         if (ds != null && _.isJSONString(ds)) {
           state = JSON.parse(ds);
@@ -5340,11 +3838,7 @@ cookie的数据存储
           store.set('$device_id', device_id);
         } else {
           state.$device_id = device_id;
-          state = JSON.stringify(state);
-          if (sd.para.enc_cookie) {
-            state = _.cookie.encrypt(state);
-          }
-          _.cookie.set('sensorsdata2015jssdkcross', state, null, true);
+          _.cookie.set('sensorsdata2015jssdkcross', JSON.stringify(state), null, true);
         }
 
         if (sd.para.is_track_device_id) {
@@ -5352,7 +3846,6 @@ cookie的数据存储
         }
       },
       storeInitCheck: function () {
-        // 如果是新用户，种cookie
         if (sd.is_first_visitor) {
           var date = new Date();
           var obj = {
@@ -5361,10 +3854,8 @@ cookie的数据存储
             s: 59 - date.getSeconds()
           };
           _.cookie.set(_.cookie.getCookieName('new_user'), '1', obj.h * 3600 + obj.m * 60 + obj.s + 's');
-          // 如果是is_first_visit_time，且第一次，那就发数据
           this.is_first_visit_time = true;
         } else {
-          // 如果没有这个cookie，肯定不是首日
           if (!_.cookie.getNewUser()) {
             this.checkIsAddSign = function (data) {
               if (data.type === 'track') {
@@ -5372,7 +3863,6 @@ cookie的数据存储
               }
             };
           }
-          // 如果不是第一次打开的用户，肯定不是首次访问
           this.checkIsFirstTime = function (data) {
             if (data.type === 'track' && data.event === '$pageview') {
               data.properties.$is_first_time = false;
@@ -5380,11 +3870,9 @@ cookie的数据存储
           };
         }
       },
-      //检查是否是latest
       checkIsFirstLatest: function () {
         var url_domain = _.info.pageProp.url_domain;
 
-        //去除详叔的坑，utm_source相关
         var latest_utms = ['$utm_source', '$utm_medium', '$utm_campaign', '$utm_content', '$utm_term'];
         var props = store.getProps();
         for (var i = 0; i < latest_utms.length; i++) {
@@ -5394,85 +3882,51 @@ cookie的数据存储
         }
         store.setProps(props, true);
 
-        // 判断最近一次，如果前向地址跟自己域名一致，且cookie中取不到值，认为有异常
-        // 最近一次站外前向地址，如果域名不一致，就register为latest
-
         var latestObj = {};
 
         if (url_domain === '') {
           url_domain = 'url解析失败';
         }
 
-        // 遍历 preset_properties 配置参数
         _.each(sd.para.preset_properties, function (value, key) {
-          // 忽略不以 latest_ 开头的配置项
           if (key.indexOf('latest_') === -1) {
             return false;
           }
-          // 得到 latest_ 后面的字符串
-          // 例如 utm, traffic_source_type, search_keyword, referrer, referrer_host, landing_page
           key = key.slice(7);
-          // 配置值为 true
           if (value) {
-            if (key === 'wx_ad_click_id' && value === 'not_collect') {
-              return false;
-            }
             if (key !== 'utm' && url_domain === 'url解析失败') {
-              if (key === 'wx_ad_click_id') {
-                latestObj['_latest_wx_ad_click_id'] = 'url的domain解析失败';
-                latestObj['_latest_wx_ad_hash_key'] = 'url的domain解析失败';
-                latestObj['_latest_wx_ad_callbacks'] = 'url的domain解析失败';
-              } else {
-                latestObj['$latest_' + key] = 'url的domain解析失败';
-              }
+              latestObj['$latest_' + key] = 'url的domain解析失败';
             } else if (_.isReferralTraffic(document.referrer)) {
               switch (key) {
                 case 'traffic_source_type':
                   latestObj['$latest_traffic_source_type'] = _.getSourceFromReferrer();
                   break;
                 case 'referrer':
-                  latestObj['$latest_referrer'] = _.isDecodeURI(sd.para.url_is_decode, _.info.pageProp.referrer);
+                  latestObj['$latest_referrer'] = _.info.pageProp.referrer;
                   break;
                 case 'search_keyword':
                   latestObj['$latest_search_keyword'] = _.getKeywordFromReferrer();
                   break;
                 case 'landing_page':
-                  latestObj['$latest_landing_page'] = _.isDecodeURI(sd.para.url_is_decode, location.href);
-                  break;
-                case 'wx_ad_click_id':
-                  var adObj = _.getWxAdIdFromUrl(location.href);
-                  latestObj['_latest_wx_ad_click_id'] = adObj.click_id;
-                  latestObj['_latest_wx_ad_hash_key'] = adObj.hash_key;
-                  latestObj['_latest_wx_ad_callbacks'] = adObj.callbacks;
+                  latestObj['$latest_landing_page'] = location.href;
                   break;
               }
             }
           } else {
-            // 如果当前配置是 latest_utm，遍历store._state.props 删除 $latest_utm 和 _latest_ 开头的属性
             if (key === 'utm' && sd.store._state.props) {
               for (var key1 in sd.store._state.props) {
-                if (key1.indexOf('$latest_utm') === 0 || (key1.indexOf('_latest_') === 0 && key1.indexOf('_latest_wx_ad_') < 0)) {
+                if (key1.indexOf('$latest_utm') === 0 || key1.indexOf('_latest_') === 0) {
                   delete sd.store._state.props[key1];
                 }
               }
-              // 如果是非 latest_utm 配置项，从 store._state.props 中删掉此属性
             } else if (sd.store._state.props && '$latest_' + key in sd.store._state.props) {
               delete sd.store._state.props['$latest_' + key];
-              //如果配置了 latest_wx_ad_click_id:false 则删除 wx_ad 相关属性
-            } else if (key == 'wx_ad_click_id' && sd.store._state.props && value === false) {
-              var wxPro = ['_latest_wx_ad_click_id', '_latest_wx_ad_hash_key', '_latest_wx_ad_callbacks'];
-              _.each(wxPro, function (value) {
-                if (value in sd.store._state.props) {
-                  delete sd.store._state.props[value];
-                }
-              });
             }
           }
         });
 
         sd.register(latestObj);
 
-        // utm
         if (sd.para.preset_properties.latest_utm) {
           var allUtms = _.info.campaignParamsStandard('$latest_', '_latest_');
           var $utms = allUtms.$utms;
@@ -5487,527 +3941,7 @@ cookie的数据存储
       }
     };
 
-    sd.bridge = {
-      //H5 校验 server_url（project host）是否通过
-      is_verify_success: false,
-      initPara: function () {
-        var app_js_bridge_default = {
-          //is_send:打通失败数据是否由 H5 发送
-          is_send: true,
-          white_list: [],
-          is_mui: false
-        };
-        if (typeof sd.para.app_js_bridge === 'object') {
-          sd.para.app_js_bridge = _.extend({}, app_js_bridge_default, sd.para.app_js_bridge);
-        } else if (sd.para.use_app_track === true || sd.para.app_js_bridge === true || sd.para.use_app_track === 'only') {
-          if (sd.para.use_app_track_is_send === false || sd.para.use_app_track === 'only') {
-            app_js_bridge_default.is_send = false;
-          }
-          sd.para.app_js_bridge = _.extend({}, app_js_bridge_default);
-        } else if (sd.para.use_app_track === 'mui') {
-          app_js_bridge_default.is_mui = true;
-          sd.para.app_js_bridge = _.extend({}, app_js_bridge_default);
-        }
-        if (sd.para.app_js_bridge.is_send === false) {
-          sd.log('设置了 is_send:false,如果打通失败，数据将被丢弃！');
-        }
-      },
-      //初始化是否打通
-      initState: function () {
-        function checkProjectAndHost(appUrl) {
-          function getHostNameAndProject(url) {
-            var obj = {
-              hostname: '',
-              project: ''
-            };
-            try {
-              obj.hostname = _.URL(url).hostname;
-              obj.project = _.URL(url).searchParams.get('project') || 'default';
-            } catch (e) {
-              sd.log(e);
-            }
-            return obj;
-          }
-          var appObj = getHostNameAndProject(appUrl);
-          var H5Obj = getHostNameAndProject(sd.para.server_url);
-          if (appObj.hostname === H5Obj.hostname && appObj.project === H5Obj.project) {
-            return true;
-          } else {
-            if (sd.para.app_js_bridge.white_list.length > 0) {
-              for (var i = 0; i < sd.para.app_js_bridge.white_list.length; i++) {
-                var urlobj = getHostNameAndProject(sd.para.app_js_bridge.white_list[i]);
-                if (urlobj.hostname === appObj.hostname && urlobj.project === appObj.project) {
-                  return true;
-                }
-              }
-            }
-          }
-          return false;
-        }
-
-        if (_.isObject(sd.para.app_js_bridge) && !sd.para.app_js_bridge.is_mui) {
-          if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && _.isObject(window.SensorsData_iOS_JS_Bridge) && window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url) {
-            if (checkProjectAndHost(window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url)) {
-              sd.bridge.is_verify_success = true;
-            }
-          } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url && window.SensorsData_APP_New_H5_Bridge.sensorsdata_track) {
-            var app_server_url = window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url();
-            if (app_server_url) {
-              if (checkProjectAndHost(app_server_url)) {
-                sd.bridge.is_verify_success = true;
-              }
-            }
-          }
-        }
-      },
-      initDefineBridgeInfo: function () {
-        var resultObj = {
-          touch_app_bridge: true,
-          verify_success: false
-        };
-
-        if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage && _.isObject(window.SensorsData_iOS_JS_Bridge) && window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url) {
-          if (sd.bridge.is_verify_success) {
-            resultObj.verify_success = 'success';
-          } else {
-            resultObj.verify_success = 'fail';
-          }
-        } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url && window.SensorsData_APP_New_H5_Bridge.sensorsdata_track) {
-          if (sd.bridge.is_verify_success) {
-            resultObj.verify_success = 'success';
-          } else {
-            resultObj.verify_success = 'fail';
-          }
-        } else if (typeof SensorsData_APP_JS_Bridge === 'object' && ((SensorsData_APP_JS_Bridge.sensorsdata_verify && SensorsData_APP_JS_Bridge.sensorsdata_visual_verify) || SensorsData_APP_JS_Bridge.sensorsdata_track)) {
-          if (SensorsData_APP_JS_Bridge.sensorsdata_verify && SensorsData_APP_JS_Bridge.sensorsdata_visual_verify) {
-            if (SensorsData_APP_JS_Bridge.sensorsdata_visual_verify(JSON.stringify({ server_url: sd.para.server_url }))) {
-              resultObj.verify_success = 'success';
-            } else {
-              resultObj.verify_success = 'fail';
-            }
-          } else {
-            resultObj.verify_success = 'success';
-          }
-        } else if ((/sensors-verify/.test(navigator.userAgent) || /sa-sdk-ios/.test(navigator.userAgent)) && !window.MSStream) {
-          if (sd.bridge.iOS_UA_bridge()) {
-            resultObj.verify_success = 'success';
-          } else {
-            resultObj.verify_success = 'fail';
-          }
-        } else {
-          resultObj.touch_app_bridge = false;
-        }
-
-        return resultObj;
-      },
-      iOS_UA_bridge: function () {
-        if (/sensors-verify/.test(navigator.userAgent)) {
-          var match = navigator.userAgent.match(/sensors-verify\/([^\s]+)/);
-          if (match && match[0] && typeof match[1] === 'string' && match[1].split('?').length === 2) {
-            match = match[1].split('?');
-            var hostname = null;
-            var project = null;
-            try {
-              hostname = _.URL(sd.para.server_url).hostname;
-              project = _.URL(sd.para.server_url).searchParams.get('project') || 'default';
-            } catch (e) {
-              sd.log(e);
-            }
-            if (hostname && hostname === match[0] && project && project === match[1]) {
-              return true;
-            } else {
-              return false;
-            }
-          } else {
-            return false;
-          }
-        } else if (/sa-sdk-ios/.test(navigator.userAgent)) {
-          return true;
-        } else {
-          return false;
-        }
-      },
-      dataSend: function (originData, that, callback) {
-        // 打通app传数据给app
-        if (_.isObject(sd.para.app_js_bridge) && !sd.para.app_js_bridge.is_mui) {
-          //如果有新版，优先用新版
-          if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage && _.isObject(window.SensorsData_iOS_JS_Bridge) && window.SensorsData_iOS_JS_Bridge.sensorsdata_app_server_url) {
-            if (sd.bridge.is_verify_success) {
-              window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage(JSON.stringify({ callType: 'app_h5_track', data: _.extend({ server_url: sd.para.server_url }, originData) }));
-              typeof callback === 'function' && callback();
-            } else {
-              if (sd.para.app_js_bridge.is_send) {
-                sd.debug.apph5({
-                  data: originData,
-                  step: '4.1',
-                  output: 'all'
-                });
-                that.prepareServerUrl();
-              } else {
-                typeof callback === 'function' && callback();
-              }
-            }
-          } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_get_server_url && window.SensorsData_APP_New_H5_Bridge.sensorsdata_track) {
-            if (sd.bridge.is_verify_success) {
-              SensorsData_APP_New_H5_Bridge.sensorsdata_track(JSON.stringify(_.extend({ server_url: sd.para.server_url }, originData)));
-              typeof callback === 'function' && callback();
-            } else {
-              if (sd.para.app_js_bridge.is_send) {
-                sd.debug.apph5({
-                  data: originData,
-                  step: '4.2',
-                  output: 'all'
-                });
-                that.prepareServerUrl();
-              } else {
-                typeof callback === 'function' && callback();
-              }
-            }
-          } else if (typeof SensorsData_APP_JS_Bridge === 'object' && (SensorsData_APP_JS_Bridge.sensorsdata_verify || SensorsData_APP_JS_Bridge.sensorsdata_track)) {
-            // 如果有新版方式，优先用新版
-            if (SensorsData_APP_JS_Bridge.sensorsdata_verify) {
-              // 如果校验通过则结束，不通过则降级改成h5继续发送
-              if (!SensorsData_APP_JS_Bridge.sensorsdata_verify(JSON.stringify(_.extend({ server_url: sd.para.server_url }, originData)))) {
-                if (sd.para.app_js_bridge.is_send) {
-                  sd.debug.apph5({
-                    data: originData,
-                    step: '3.1',
-                    output: 'all'
-                  });
-                  that.prepareServerUrl();
-                } else {
-                  typeof callback === 'function' && callback();
-                }
-              } else {
-                typeof callback === 'function' && callback();
-              }
-            } else {
-              SensorsData_APP_JS_Bridge.sensorsdata_track(JSON.stringify(_.extend({ server_url: sd.para.server_url }, originData)));
-              typeof callback === 'function' && callback();
-            }
-          } else if ((/sensors-verify/.test(navigator.userAgent) || /sa-sdk-ios/.test(navigator.userAgent)) && !window.MSStream) {
-            var iframe = null;
-            if (sd.bridge.iOS_UA_bridge()) {
-              iframe = document.createElement('iframe');
-              iframe.setAttribute(
-                'src',
-                'sensorsanalytics://trackEvent?event=' +
-                  encodeURIComponent(
-                    JSON.stringify(
-                      _.extend(
-                        {
-                          server_url: sd.para.server_url
-                        },
-                        originData
-                      )
-                    )
-                  )
-              );
-              document.documentElement.appendChild(iframe);
-              iframe.parentNode.removeChild(iframe);
-              iframe = null;
-              typeof callback === 'function' && callback();
-            } else {
-              if (sd.para.app_js_bridge.is_send) {
-                sd.debug.apph5({
-                  data: originData,
-                  step: '3.2',
-                  output: 'all'
-                });
-                that.prepareServerUrl();
-              } else {
-                typeof callback === 'function' && callback();
-              }
-            }
-          } else {
-            if (_.isObject(sd.para.app_js_bridge) && sd.para.app_js_bridge.is_send === true) {
-              sd.debug.apph5({
-                data: originData,
-                step: '2',
-                output: 'all'
-              });
-              that.prepareServerUrl();
-            } else {
-              typeof callback === 'function' && callback();
-            }
-          }
-        } else if (_.isObject(sd.para.app_js_bridge) && sd.para.app_js_bridge.is_mui) {
-          if (_.isObject(window.plus) && window.plus.SDAnalytics && window.plus.SDAnalytics.trackH5Event) {
-            window.plus.SDAnalytics.trackH5Event(data);
-            typeof callback === 'function' && callback();
-          } else {
-            if (_.isObject(sd.para.app_js_bridge) && sd.para.app_js_bridge.is_send === true) {
-              that.prepareServerUrl();
-            } else {
-              typeof callback === 'function' && callback();
-            }
-          }
-        } else {
-          sd.debug.apph5({
-            data: originData,
-            step: '1',
-            output: 'code'
-          });
-          that.prepareServerUrl();
-        }
-      },
-      app_js_bridge_v1: function () {
-        var app_info = null;
-        var todo = null;
-        function setAppInfo(data) {
-          app_info = data;
-          if (_.isJSONString(app_info)) {
-            app_info = JSON.parse(app_info);
-          }
-          if (todo) {
-            todo(app_info);
-            todo = null;
-            app_info = null;
-          }
-        }
-        //android
-        function getAndroid() {
-          if (typeof window.SensorsData_APP_JS_Bridge === 'object' && window.SensorsData_APP_JS_Bridge.sensorsdata_call_app) {
-            app_info = SensorsData_APP_JS_Bridge.sensorsdata_call_app();
-            if (_.isJSONString(app_info)) {
-              app_info = JSON.parse(app_info);
-            }
-          }
-        }
-        //ios
-        window.sensorsdata_app_js_bridge_call_js = function (data) {
-          setAppInfo(data);
-        };
-        // 通知iOS
-        function calliOS() {
-          if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-            var iframe = document.createElement('iframe');
-            iframe.setAttribute('src', 'sensorsanalytics://getAppInfo');
-            document.documentElement.appendChild(iframe);
-            iframe.parentNode.removeChild(iframe);
-            iframe = null;
-          }
-        }
-        sd.getAppStatus = function (func) {
-          calliOS();
-          //先获取能直接取到的安卓，ios是异步的不需要操作
-          getAndroid();
-          // 不传参数，直接返回数据
-          if (!func) {
-            return app_info;
-            app_info = null;
-          } else {
-            //如果传参数，保存参数。如果有数据直接执行，没数据时保存
-            if (app_info === null) {
-              todo = func;
-            } else {
-              func(app_info);
-              app_info = null;
-            }
-          }
-        };
-      },
-      //init中调用，初始化接收app数据的通道，根据数据的type将数据分发到相应模块
-      supportAppCallJs: function () {
-        window.sensorsdata_app_call_js = function (type, data) {
-          if (type in window.sensorsdata_app_call_js.modules) {
-            window.sensorsdata_app_call_js.modules[type](data);
-          }
-        };
-        window.sensorsdata_app_call_js.modules = {};
-      }
-    };
-    /**
-     * 通过JSBridge创建业务的通道实例
-     * @param {*} obj 实例参数
-     * @param {*} obj.type 业务名称，作为和App通信的callType
-     * @param {*} obj.app_call_js 接收和处理App数据的方法
-     */
-    sd.JSBridge = function (obj) {
-      this.list = {};
-      this.type = obj.type;
-      this.app_call_js = _.isFunction(obj.app_call_js) ? obj.app_call_js : function () {};
-      this.init();
-    };
-    //创建该业务接收App数据的模块，接收App数据
-    sd.JSBridge.prototype.init = function () {
-      var that = this;
-      if (!window.sensorsdata_app_call_js.modules[this.type]) {
-        window.sensorsdata_app_call_js.modules[this.type] = function (data) {
-          that.app_call_js(data);
-        };
-      }
-    };
-    //JS发送数据给App
-    sd.JSBridge.prototype.jsCallApp = function (data) {
-      var appData = {
-        callType: this.type,
-        data: data
-      };
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage) {
-        window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage(JSON.stringify(appData));
-      } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_js_call_app) {
-        window.SensorsData_APP_New_H5_Bridge.sensorsdata_js_call_app(JSON.stringify(appData));
-      } else {
-        sd.log('数据发往App失败，App没有暴露bridge');
-        return false;
-      }
-    };
-    //检查App端通道方法是否暴露
-    sd.JSBridge.prototype.hasAppBridge = function () {
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage) {
-        return 'ios';
-      } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_js_call_app) {
-        return 'android';
-      } else {
-        sd.log('App端bridge未暴露');
-        return false;
-      }
-    };
-    /**
-     * 双向通道，JS发送数据请求给App，可以设置超时时间与回调
-     * @param {*} obj
-     * {
-     *   data:{},                             //Object，传输给 App 的数据
-     *   callback:function(data){},               //Function,App返回响应数据执行的回调
-     *   timeout:{
-     *      time:2000,                        //可选参数，App响应的超时时间，超时未响应执行timeout.callback函数
-     *      callback:function(){}             //Function,App 未在超时时间内返回响应数据执行的超时回调
-     *   }
-     * }
-     */
-    sd.JSBridge.prototype.requestToApp = function (obj) {
-      var that = this;
-      var data = _.isObject(obj.data) ? obj.data : {};
-      if (!_.isFunction(obj.callback)) {
-        obj.callback = function () {};
-      }
-
-      if (_.isObject(obj.timeout) && _.isNumber(obj.timeout.time)) {
-        if (!_.isFunction(obj.timeout.callback)) {
-          obj.timeout.callback = function () {};
-        }
-        obj.timer = setTimeout(function () {
-          obj.timeout.callback();
-          delete that.list[key];
-        }, obj.timeout.time);
-      }
-      function getKey() {
-        var d = new Date().getTime().toString(16);
-        var m = String(Math.random()).replace('.', '').slice(1, 8);
-        return d + '-' + m;
-      }
-      var key = getKey();
-      this.list[key] = obj;
-      var appData = {
-        callType: this.type,
-        data: data
-      };
-      appData.data.message_id = key;
-      if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.sensorsdataNativeTracker && window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage) {
-        window.webkit.messageHandlers.sensorsdataNativeTracker.postMessage(JSON.stringify(appData));
-      } else if (_.isObject(window.SensorsData_APP_New_H5_Bridge) && window.SensorsData_APP_New_H5_Bridge.sensorsdata_js_call_app) {
-        window.SensorsData_APP_New_H5_Bridge.sensorsdata_js_call_app(JSON.stringify(appData));
-      } else {
-        sd.log('数据发往App失败，App没有暴露bridge');
-        return false;
-      }
-    };
-    //双向通道，接收App响应，根据message_id执行对应回调
-    sd.JSBridge.prototype.double = function (data) {
-      if (data.message_id) {
-        var message = this.list[data.message_id];
-        if (message) {
-          if (message.timer) {
-            clearTimeout(message.timer);
-          }
-          message.callback(data);
-          delete this.list[data.message_id];
-        }
-      }
-    };
-
-    /*
-点击图和触达图数据采集的功能
-*/
-
     var heatmap = (sd.heatmap = {
-      // 得到元素的 $element_path
-      getElementPath: function (element, ignoreID) {
-        var names = [];
-        while (element.parentNode) {
-          if (element.id && !ignoreID && /^[A-Za-z][-A-Za-z0-9_:.]*$/.test(element.id)) {
-            names.unshift(element.tagName.toLowerCase() + '#' + element.id);
-            break;
-          } else {
-            if (element === document.body) {
-              names.unshift('body');
-              break;
-            } else {
-              names.unshift(element.tagName.toLowerCase());
-            }
-            element = element.parentNode;
-          }
-        }
-        return names.join(' > ');
-      },
-      // 得到元素最近的 li 元素
-      getClosestLi: function (element) {
-        // 得到符合指定选择器的最近的元素
-        var getClosest = function (elem, selector) {
-          // Get closest match
-          for (; elem && elem !== document && elem.nodeType === 1; elem = elem.parentNode) {
-            // If selector is a tag
-            if (elem.tagName.toLowerCase() === selector) {
-              return elem;
-            }
-          }
-          return null;
-        };
-        return getClosest(element, 'li');
-      },
-      // 得到元素的 $element_position 属性
-      getElementPosition: function (element, elementPath, ignoreID) {
-        var closestLi = sd.heatmap.getClosestLi(element);
-        if (!closestLi) {
-          return null;
-        }
-        var tag = element.tagName.toLowerCase();
-        var sameTypeTags = closestLi.getElementsByTagName(tag);
-        var sameTypeTagsLen = sameTypeTags.length;
-        var arr = [];
-        // 如果 li 中存在多个相同类型的元素
-        if (sameTypeTagsLen > 1) {
-          for (var i = 0; i < sameTypeTagsLen; i++) {
-            var elepath = sd.heatmap.getElementPath(sameTypeTags[i], ignoreID);
-            if (elepath === elementPath) {
-              arr.push(sameTypeTags[i]);
-            }
-          }
-          if (arr.length > 1) {
-            // 以当前元素在相同类型元素列表中的位置作为 position
-            return _.indexOf(arr, element);
-          }
-        }
-
-        function _getPosition(element) {
-          var tagName = element.tagName.toLowerCase();
-          var parentNode = element.parentNode;
-          if (!parentNode) {
-            return '';
-          }
-          var sameTypeSiblings = _.ry(element).getSameTypeSiblings();
-          var typeLen = sameTypeSiblings.length;
-          if (typeLen === 1) {
-            return 0;
-          }
-          for (var i = 0, e = element; _.ry(e).previousElementSibling().ele; e = _.ry(e).previousElementSibling().ele, i++);
-          return i;
-        }
-        // 默认以上级 li 的位置作为元素的 position
-        return _getPosition(closestLi);
-      },
-      // 设置错误提示
       setNotice: function (web_url) {
         sd.is_heatmap_render_mode = true;
 
@@ -6041,7 +3975,7 @@ cookie的数据存储
       },
       selector: function (el) {
         var i = el.parentNode && 9 == el.parentNode.nodeType ? -1 : this.getDomIndex(el);
-        if (el.getAttribute && el.getAttribute('id') && /^[A-Za-z][-A-Za-z0-9_:.]*$/.test(el.getAttribute('id')) && (!sd.para.heatmap || (sd.para.heatmap && sd.para.heatmap.element_selector !== 'not_use_id'))) {
+        if (el.getAttribute && el.getAttribute('id') && (!sd.para.heatmap || (sd.para.heatmap && sd.para.heatmap.element_selector !== 'not_use_id'))) {
           return '#' + el.getAttribute('id');
         } else {
           return el.tagName.toLowerCase() + (~i ? ':nth-of-type(' + (i + 1) + ')' : '');
@@ -6058,7 +3992,7 @@ cookie的数据存储
           return arr.join(' > ');
         }
         arr.unshift(this.selector(el));
-        if (el.getAttribute && el.getAttribute('id') && /^[A-Za-z][-A-Za-z0-9_:.]*$/.test(el.getAttribute('id')) && sd.para.heatmap && sd.para.heatmap.element_selector !== 'not_use_id') return arr.join(' > ');
+        if (el.getAttribute && el.getAttribute('id') && sd.para.heatmap && sd.para.heatmap.element_selector !== 'not_use_id') return arr.join(' > ');
         return this.getDomSelector(el.parentNode, arr);
       },
       na: function () {
@@ -6102,14 +4036,11 @@ cookie的数据存储
         }
 
         var selector = this.getDomSelector(target);
-        var prop = _.getEleInfo({ target: target });
+        var prop = _.getEleInfo({
+          target: target
+        });
 
         prop.$element_selector = selector ? selector : '';
-        prop.$element_path = sd.heatmap.getElementPath(target, sd.para.heatmap && sd.para.heatmap.element_selector === 'not_use_id');
-        var element_position = sd.heatmap.getElementPosition(target, prop.$element_path, sd.para.heatmap && sd.para.heatmap.element_selector === 'not_use_id');
-        if (_.isNumber(element_position)) {
-          prop.$element_position = element_position;
-        }
         if (sd.para.heatmap && sd.para.heatmap.custom_property) {
           var customP = sd.para.heatmap.custom_property(target);
           if (_.isObject(customP)) {
@@ -6118,7 +4049,14 @@ cookie的数据存储
         }
         prop = _.extend(prop, userCustomProps);
         if (tagName === 'a' && sd.para.heatmap && sd.para.heatmap.isTrackLink === true) {
-          _.trackLink({ event: ev, target: target }, '$WebClick', prop);
+          _.trackLink(
+            {
+              event: ev,
+              target: target
+            },
+            '$WebClick',
+            prop
+          );
         } else {
           sd.track('$WebClick', prop, userCallback);
         }
@@ -6134,71 +4072,12 @@ cookie的数据存储
         }
         return false;
       },
-      isStyleTag: function (tagname, isVisualMode) {
-        var defaultTag = ['a', 'div', 'input', 'button', 'textarea'];
-        var ignore_tags_default = ['mark', '/mark', 'strong', 'b', 'em', 'i', 'u', 'abbr', 'ins', 'del', 's', 'sup'];
-        if (_.indexOf(defaultTag, tagname) > -1) {
-          return false;
-        }
-        if (isVisualMode && (!sd.para.heatmap || !sd.para.heatmap.collect_tags || !sd.para.heatmap.collect_tags.div)) {
-          return _.indexOf(ignore_tags_default, tagname) > -1;
-        } else if (_.isObject(sd.para.heatmap) && _.isObject(sd.para.heatmap.collect_tags) && _.isObject(sd.para.heatmap.collect_tags.div) && _.indexOf(sd.para.heatmap.collect_tags.div.ignore_tags, tagname) > -1) {
-          return true;
-        }
-        return false;
-      },
-      isCollectableDiv: function (target, isVisualMode) {
-        try {
-          if (target.children.length === 0) {
-            return true;
-          } else {
-            for (var i = 0; i < target.children.length; i++) {
-              if (target.children[i].nodeType !== 1) {
-                continue;
-              }
-              var tag = target.children[i].tagName.toLowerCase();
-              if (this.isStyleTag(tag, isVisualMode)) {
-                if (!this.isCollectableDiv(target.children[i], isVisualMode)) {
-                  return false;
-                }
-              } else {
-                return false;
-              }
-            }
-            return true;
-          }
-        } catch (error) {
-          sd.log(error);
-        }
-        return false;
-      },
-      getCollectableParent: function (target, isVisualMode) {
-        try {
-          var parent = target.parentNode;
-          var parentName = parent ? parent.tagName.toLowerCase() : '';
-          if (parentName === 'body') {
-            return false;
-          }
-          if (parentName && parentName === 'div' && this.isCollectableDiv(parent, isVisualMode)) {
-            return parent;
-          } else if (parent && this.isStyleTag(parentName, isVisualMode)) {
-            return this.getCollectableParent(parent, isVisualMode);
-          }
-        } catch (error) {
-          sd.log(error);
-        }
-        return false;
-      },
+
       initScrollmap: function () {
         if (!_.isObject(sd.para.heatmap) || sd.para.heatmap.scroll_notice_map !== 'default') {
           return false;
         }
 
-        /*
-    if (sd.para.scrollmap && _.isFunction(sd.para.scrollmap.collect_url) && !sd.para.scrollmap.collect_url()) {
-      return false;
-    }
-    */
         var checkPage = function () {
           if (sd.para.scrollmap && _.isFunction(sd.para.scrollmap.collect_url) && !sd.para.scrollmap.collect_url()) {
             return false;
@@ -6224,8 +4103,6 @@ cookie的数据存储
               para.$viewport_position = Math.round(para.$viewport_position) || 0;
               para.$viewport_height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || 0;
               para.$viewport_width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth || 0;
-              //para.$screen_orientation = _.getScreenOrientation();
-              //para.$device_pixel_ratio = (isNaN(window.devicePixelRatio) ? 1 : window.devicePixelRatio);
               if (isNoDelay) {
                 interDelay.main(para, true);
               } else {
@@ -6245,7 +4122,7 @@ cookie的数据存储
             var current_time = new Date();
             var delay_time = current_time - this.current_time;
             if ((delay_time > sd.para.heatmap.scroll_delay_time && offsetTop - para.$viewport_position !== 0) || isClose) {
-              para.$url = _.isDecodeURI(sd.para.url_is_decode, location.href);
+              para.$url = location.href;
               para.$title = document.title;
               para.$url_path = location.pathname;
               para.event_duration = Math.min(sd.para.heatmap.scroll_event_duration, parseInt(delay_time) / 1000);
@@ -6277,7 +4154,6 @@ cookie的数据存储
           return false;
         }
 
-        // 验证url，function成功就行，非function认为都是全部
         if (_.isFunction(sd.para.heatmap.collect_url) && !sd.para.heatmap.collect_url()) {
           return false;
         }
@@ -6337,65 +4213,262 @@ cookie的数据存储
             }
 
             var parent_ele = target.parentNode;
-            var hasA = that.hasElement(e);
-            var trackAttrs = sd.para.heatmap.track_attr;
-            if (tagName === 'a' || tagName === 'button' || tagName === 'input' || tagName === 'textarea' || _.hasAttributes(target, trackAttrs)) {
+
+            if (tagName === 'a' || tagName === 'button' || tagName === 'input' || tagName === 'textarea' || _.hasAttribute(target, 'data-sensors-click')) {
               that.start(ev, target, tagName);
-            } else if (parent_ele.tagName.toLowerCase() === 'button' || parent_ele.tagName.toLowerCase() === 'a' || _.hasAttributes(parent_ele, trackAttrs)) {
+            } else if (parent_ele.tagName.toLowerCase() === 'button' || parent_ele.tagName.toLowerCase() === 'a') {
               that.start(ev, parent_ele, target.parentNode.tagName.toLowerCase());
             } else if (tagName === 'area' && parent_ele.tagName.toLowerCase() === 'map' && _.ry(parent_ele).prev().tagName && _.ry(parent_ele).prev().tagName.toLowerCase() === 'img') {
               that.start(ev, _.ry(parent_ele).prev(), _.ry(parent_ele).prev().tagName.toLowerCase());
-            } else if (hasA) {
-              that.start(ev, hasA, hasA.tagName.toLowerCase());
-            } else if (tagName === 'div' && sd.para.heatmap.collect_tags.div && that.isCollectableDiv(target)) {
-              that.start(ev, target, tagName);
-            } else if (that.isStyleTag(tagName)) {
-              if (sd.para.heatmap.collect_tags.div) {
-                var divTarget = that.getCollectableParent(target);
-                if (divTarget) {
-                  that.start(ev, divTarget, 'div');
-                }
+            } else {
+              var hasA = that.hasElement(e);
+              if (hasA) {
+                that.start(ev, hasA, hasA.tagName.toLowerCase());
               }
             }
           });
+        }
+      },
+      prepare: function (todo) {
+        var isVtrackMode = false;
+        var match = location.search.match(/sa-request-id=([^&#]+)/);
+        var type = location.search.match(/sa-request-type=([^&#]+)/);
+        var web_url = location.search.match(/sa-request-url=([^&#]+)/);
+
+        var me = this;
+
+        function isReady(data, type, url) {
+          if (sd.para.heatmap_url) {
+            _.loadScript({
+              success: function () {
+                setTimeout(function () {
+                  if (typeof sa_jssdk_heatmap_render !== 'undefined') {
+                    sa_jssdk_heatmap_render(sd, data, type, url);
+                    if (typeof console === 'object' && typeof console.log === 'function') {
+                      if (!(sd.heatmap_version && sd.heatmap_version === sd.lib_version)) {
+                        console.log('heatmap.js与sensorsdata.js版本号不一致，可能存在风险!');
+                      }
+                    }
+                  }
+                }, 0);
+              },
+              error: function () {},
+              type: 'js',
+              url: sd.para.heatmap_url
+            });
+          } else {
+            sd.log('没有指定heatmap_url的路径');
+          }
+        }
+        if (match && match[0] && match[1]) {
+          heatmap.setNotice(web_url);
+          if (_.sessionStorage.isSupport()) {
+            if (web_url && web_url[0] && web_url[1]) {
+              sessionStorage.setItem('sensors_heatmap_url', decodeURIComponent(web_url[1]));
+            }
+            sessionStorage.setItem('sensors_heatmap_id', match[1]);
+
+            if (type && type[0] && type[1]) {
+              if (type[1] === '1' || type[1] === '2' || type[1] === '3') {
+                type = type[1];
+                sessionStorage.setItem('sensors_heatmap_type', type);
+              } else {
+                type = null;
+              }
+            } else {
+              if (sessionStorage.getItem('sensors_heatmap_type') !== null) {
+                type = sessionStorage.getItem('sensors_heatmap_type');
+              } else {
+                type = null;
+              }
+            }
+          }
+          isReady(match[1], type);
+        } else if (window.parent !== self) {
+          var messageListener = function (event) {
+            if (event.data.source !== 'sa-fe') {
+              return false;
+            }
+            if (event.data.type === 'v-track-mode') {
+              if (event.data.data && event.data.data.isVtrack) {
+                isVtrackMode = true;
+                loadVtrack();
+              } else {
+                trackMode();
+              }
+              window.removeEventListener('message', messageListener, false);
+            }
+          };
+          if (window.addEventListener) {
+            window.addEventListener('message', messageListener, false);
+          }
+          if (window.parent && window.parent.postMessage) {
+            window.parent.postMessage(
+              {
+                source: 'sa-web-sdk',
+                type: 'v-is-vtrack',
+                data: {}
+              },
+              '*'
+            );
+          }
+
+          setTimeout(function () {
+            if (isVtrackMode) {
+              return false;
+            }
+            if (_.sessionStorage.isSupport() && typeof sessionStorage.getItem('sensors_heatmap_id') === 'string') {
+              heatmap.setNotice();
+              isReady(sessionStorage.getItem('sensors_heatmap_id'), sessionStorage.getItem('sensors_heatmap_type'), location.href);
+            } else {
+              trackMode();
+            }
+            if (window.removeEventListener) {
+              window.removeEventListener('message', messageListener, false);
+            }
+          }, 1000);
+
+          function loadVtrack() {
+            _.loadScript({
+              success: function () {},
+              error: function () {},
+              type: 'js',
+              url: location.protocol + '//static.sensorsdata.cn/sdk/' + sd.lib_version + '/vtrack.min.js'
+            });
+          }
+
+          function trackMode() {
+            todo();
+            if (_.isObject(sd.para.heatmap)) {
+              heatmap.initHeatmap();
+              heatmap.initScrollmap();
+            }
+          }
+        } else {
+          todo();
+          if (_.isObject(sd.para.heatmap)) {
+            this.initHeatmap();
+            this.initScrollmap();
+          }
         }
       }
     });
 
     sd.init = function (para) {
-      // 标志已经init过
       if (sd.readyState && sd.readyState.state && sd.readyState.state >= 2) {
         return false;
       }
       sd.setInitVar();
       sd.readyState.setState(2);
       sd.initPara(para);
-      sd.bridge.supportAppCallJs();
-      sd.detectMode();
 
-      // iOS Safari
-      if (sd._.isIOS() && sd._.getIOSVersion() && sd._.getIOSVersion() < 13) {
-        if (sd.para.heatmap && sd.para.heatmap.collect_tags && sd.para.heatmap.collect_tags.div) {
-          sd._.setCssStyle('div, [data-sensors-click] { cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0); }');
+      function app_js_bridge() {
+        var app_info = null;
+        var todo = null;
+
+        function setAppInfo(data) {
+          app_info = data;
+          if (_.isJSONString(app_info)) {
+            app_info = JSON.parse(app_info);
+          }
+          if (todo) {
+            todo(app_info);
+            todo = null;
+            app_info = null;
+          }
         }
-        if (sd.para.heatmap && sd.para.heatmap.track_attr) {
-          sd._.setCssStyle('[' + sd.para.heatmap.track_attr.join('], [') + '] { cursor: pointer; -webkit-tap-highlight-color: rgba(0,0,0,0); }');
+
+        function getAndroid() {
+          if (typeof window.SensorsData_APP_JS_Bridge === 'object' && window.SensorsData_APP_JS_Bridge.sensorsdata_call_app) {
+            app_info = SensorsData_APP_JS_Bridge.sensorsdata_call_app();
+            if (_.isJSONString(app_info)) {
+              app_info = JSON.parse(app_info);
+            }
+          }
         }
+        window.sensorsdata_app_js_bridge_call_js = function (data) {
+          setAppInfo(data);
+        };
+
+        function calliOS() {
+          if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
+            var iframe = document.createElement('iframe');
+            iframe.setAttribute('src', 'sensorsanalytics://getAppInfo');
+            document.documentElement.appendChild(iframe);
+            iframe.parentNode.removeChild(iframe);
+            iframe = null;
+          }
+        }
+        sd.getAppStatus = function (func) {
+          calliOS();
+          getAndroid();
+          if (!func) {
+            return app_info;
+            app_info = null;
+          } else {
+            if (app_info === null) {
+              todo = func;
+            } else {
+              func(app_info);
+              app_info = null;
+            }
+          }
+        };
       }
+
+      heatmap.prepare(function () {
+        app_js_bridge();
+        _.info.initPage();
+
+        if (sd.para.is_track_single_page) {
+          _.addSinglePageEvent(function (last_url) {
+            var sendData = function (extraData) {
+              extraData = extraData || {};
+              if (last_url !== location.href) {
+                _.info.pageProp.referrer = last_url;
+                sd.quick(
+                  'autoTrack',
+                  _.extend(
+                    {
+                      $url: location.href,
+                      $referrer: last_url
+                    },
+                    extraData
+                  )
+                );
+              }
+            };
+            if (typeof sd.para.is_track_single_page === 'boolean') {
+              sendData();
+            } else if (typeof sd.para.is_track_single_page === 'function') {
+              var returnValue = sd.para.is_track_single_page();
+              if (_.isObject(returnValue)) {
+                sendData(returnValue);
+              } else if (returnValue === true) {
+                sendData();
+              }
+            }
+          });
+        }
+        if (sd.para.batch_send) {
+          sd.batchSend.batchInterval();
+        }
+        sd.store.init();
+
+        sd.readyState.setState(3);
+        if (sd._q && _.isArray(sd._q) && sd._q.length > 0) {
+          _.each(sd._q, function (content) {
+            sd[content[0]].apply(sd, Array.prototype.slice.call(content[1]));
+          });
+        }
+      });
     };
 
-    var methods = ['getAppStatus', 'track', 'quick', 'register', 'registerPage', 'registerOnce', 'trackSignup', 'setProfile', 'setOnceProfile', 'appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 'identify', 'login', 'logout', 'trackLink', 'clearAllRegister', 'clearPageRegister'];
+    var methods = ['track', 'quick', 'register', 'registerPage', 'registerOnce', 'trackSignup', 'setProfile', 'setOnceProfile', 'appendProfile', 'incrementProfile', 'deleteProfile', 'unsetProfile', 'identify', 'login', 'logout', 'trackLink', 'clearAllRegister'];
 
     _.each(methods, function (method) {
       var oldFunc = sd[method];
       sd[method] = function () {
-        if (sd.readyState.state < 3) {
-          if (!_.isArray(sd._q)) {
-            sd._q = [];
-          }
-          sd._q.push([method, arguments]);
-          return false;
-        }
         if (!sd.readyState.getState()) {
           try {
             console.error('请先初始化神策JS SDK');
@@ -6408,21 +4481,15 @@ cookie的数据存储
       };
     });
 
-    // Do not remove the following line!
-    //__PLUGINS__
-
     if (typeof window['sensorsDataAnalytic201505'] === 'string') {
-      //异步或者同步
       sd.setPreConfig(window[sensorsDataAnalytic201505]);
       window[sensorsDataAnalytic201505] = sd;
       window['sensorsDataAnalytic201505'] = sd;
       sd.init();
     } else if (typeof window['sensorsDataAnalytic201505'] === 'undefined') {
-      //module模式，或者webpack打包
       window['sensorsDataAnalytic201505'] = sd;
       return sd;
     } else {
-      //已经使用过以上两种方式的话
       return window['sensorsDataAnalytic201505'];
     }
   } catch (err) {
